@@ -1,5 +1,5 @@
 # omelette
-vb6-db-app-framework
+VB6 Database Application Framework
 
 Origin of the project name omelette is i had a delicious omelette dish for dinner last night and I just want to call this project with a simple name.
 
