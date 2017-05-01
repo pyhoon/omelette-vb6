@@ -1,5 +1,12 @@
-frmLiveApp = 175, 175, 973, 626, C, 3, 3, 994, 647, C
-mdiMain = 50, 50, 848, 501, C, 4, 2, 993, 644, C
+frmLiveApp = 175, 175, 973, 626, C, 234, 100, 786, 489, C
+mdiMain = 121, 76, 919, 526, C, 4, 2, 993, 644, C
 modSubMain = 175, 175, 973, 626, C
 modGlobalDeclaration = 125, 125, 923, 576, C
-frmOptions = 0, 0, 0, 0, C, 100, 100, 898, 551, C
+frmOptions = 107, 79, 905, 530, C, 100, 100, 898, 551, C
+frmProjectNew = 154, 88, 952, 539, C, 150, 150, 948, 601, C
+modTextFile = 125, 125, 923, 576, C
+modCommon = 175, 175, 973, 626, C
+modDatabase = 0, 0, 798, 451, C
+frmWindowProject = 0, 0, 798, 451, C, 550, 132, 864, 478, C
+modProject = 25, 25, 823, 476, C
+frmProjectOpen = 150, 150, 948, 601, C, 125, 125, 923, 576, C
