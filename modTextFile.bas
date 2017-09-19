@@ -1,4 +1,8 @@
 Attribute VB_Name = "modTextFile"
+' Version : 0.x
+' Author: Poon Yip Hoon
+' Modified On : dd/MM/yyyy
+' Descriptions : Text file input/output functions
 Option Explicit
 
 Public Sub LogError(pstrFileName As String, pstrNote As String, Optional pstrError As String)
