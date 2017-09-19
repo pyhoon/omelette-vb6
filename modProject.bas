@@ -1,6 +1,64 @@
 Attribute VB_Name = "modProject"
+' Version : 0.x
+' Author: Poon Yip Hoon
+' Modified On : dd/MM/yyyy
+' Descriptions : Project functions
 Option Explicit
 Private i As Integer
+'Private strProjectType As String
+'Private strProjectFolder As String
+'Private strProjectName As String
+Private strProjectFormName() As String
+Private strProjectFormFile() As String
+
+Public Function isProjectExist(strProjectName As String, strProjectType As String, Optional strProjectFolder As String) As Boolean
+    Dim strVbpPath As String
+    If strProjectFolder = "" Then strProjectFolder = App.Path & "\Projects\"
+    'strProjectName = InputBox("Please enter your project name:", "New project", "Project1")
+    If Trim(strProjectName) = "" Then
+        'MsgBox "Project name is empty!", vbExclamation, "New Project"
+        'isProjectExist = False
+        'Exit Function
+        strProjectName = "Project1"
+    End If
+    strVbpPath = strProjectFolder & strProjectName
+    If Dir(strVbpPath, vbDirectory) <> "" Then
+        isProjectExist = True
+    Else
+        isProjectExist = False
+        MkDir strVbpPath
+        If strProjectType = "DEFAULT" Then
+            WriteVbp strVbpPath & "\" & strProjectName & ".vbp", strProjectName
+        ElseIf strProjectType = "STANDARD" Then
+            ReDim strProjectFormName(0)
+            strProjectFormName(0) = "frmForm1"
+            ReDim strProjectFormFile(0)
+            strProjectFormFile(0) = "frmForm1.frm"
+            WriteFrm strVbpPath & "\" & strProjectFormFile(0), strProjectFormName(0), "Form1"
+            WriteVbp strVbpPath & "\" & strProjectName & ".vbp", strProjectName, strProjectFormName(0), strProjectType
+        Else ' BLANK
+            WriteVbp strVbpPath & "\" & strProjectName & ".vbp", strProjectName
+        End If
+        'MsgBox "Project created successfully", vbInformation, "Successful"
+        gstrProjectName = strProjectName
+        gstrProjectPath = strVbpPath
+        With mdiMain
+            .mnuFileMakeExe.Caption = "&Compile " & gstrProjectName & ".exe..."
+            .mnuFileMakeExeAndRun.Caption = "Compile and &Run " & gstrProjectName & ".exe..."
+            .mnuFileMakeExe.Enabled = True
+            .mnuFileMakeExeAndRun.Enabled = True
+        End With
+        'Unload Me
+        With frmWindowProject
+            .Width = 4000
+            .Height = 4000
+            .Left = mdiMain.Width - .Width - 300
+            .Top = 0
+            .Show
+            .RefreshTreeview strProjectType
+        End With
+    End If
+End Function
 
 Public Sub WriteVbp(pstrFileName As String, _
                     Optional pstrProjectName As String, _
@@ -16,13 +74,15 @@ On Error GoTo Catch
     strText(1) = strText(1) & "\stdole2.tlb"
     strText(1) = strText(1) & "#OLE Automation"
     If pstrType = "STANDARD" Then
-        strText(2) = "Form=frmForm1.frm"
+        If pstrStartup = "" Then
+            pstrStartup = "frmForm1" ' "Sub Main"
+        End If
     Else
-        strText(2) = "Form=Form1.frm"
+        If pstrStartup = "" Then
+            pstrStartup = "Form1" ' "Sub Main"
+        End If
     End If
-    If pstrStartup = "" Then
-        pstrStartup = "frmForm1" ' "Sub Main"
-    End If
+    strText(2) = "Form=" & pstrStartup & ".frm"
     strText(3) = "Startup=""" & pstrStartup & """"
     strText(4) = "HelpFile="""""
     strText(5) = "Command32="""""
@@ -124,4 +184,3 @@ On Error GoTo Catch
 Catch:
     LogError "Error", "WriteBas(" & pstrFileName & ")", Err.Description
 End Sub
-
