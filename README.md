@@ -9,8 +9,12 @@ Objective of this project is to provide a framework to develop database driven a
 VB6 project source code can be generated on the fly. With the addition of a "fake" command line form, developer can generate project files and ms access database using a few commands.
 
 Example: 
+
 vb create Customer
+
 vb open Customer 
+
 vb generate model Customer
+
 
 The above commands create a vb6 project inside Projects folder name Customer with an empty form and a folder name Data with a MS Access database name Data.mdb with a Customer table.
