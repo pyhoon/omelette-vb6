@@ -78,7 +78,7 @@ Begin VB.Form frmProjectNew
       ForeColor       =   -2147483640
       BackColor       =   -2147483643
       BorderStyle     =   1
-      Appearance      =   1
+      Appearance      =   0
       OLEDragMode     =   1
       OLEDropMode     =   1
       NumItems        =   0
@@ -118,7 +118,7 @@ Attribute VB_Exposed = False
 Option Explicit
 Private strProjectType As String
 Private strProjectFolder As String
-Private strProjectName As String
+Private strNewProjectName As String
 
 Private Sub Form_Load()
     strProjectFolder = App.Path & "\Projects\"
@@ -130,7 +130,13 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub cmdOK_Click()
-    If isProjectExist Then
+    strNewProjectName = InputBox("Please enter your project name:", "New project", "Project1")
+    If Trim(strNewProjectName) = "" Then
+        MsgBox "Invalid Project Name!", vbExclamation, "New Project"
+        Exit Sub
+    End If
+    Unload Me
+    If isProjectExist(strNewProjectName, strProjectType, strProjectFolder) Then
         MsgBox "Project already exist!", vbExclamation, "New Project"
         Exit Sub
     End If
@@ -149,7 +155,12 @@ Private Sub lvwProjects_DblClick()
 '    If Not lvwProjects.SelectedItem Is Nothing Then
 '        MsgBox "Clicked " & lvwProjects.SelectedItem.Key
 '    End If
-    If isProjectExist Then
+    strNewProjectName = InputBox("Please enter your project name:", "New project", "Project1")
+    If Trim(strNewProjectName) = "" Then
+        MsgBox "Invalid Project Name!", vbExclamation, "New Project"
+        Exit Sub
+    End If
+    If isProjectExist(strNewProjectName, strProjectType, strProjectFolder) Then
         MsgBox "Project already exist!", vbExclamation, "New Project"
         Exit Sub
     End If
@@ -167,27 +178,42 @@ Private Sub lvwProjects_ItemClick(ByVal Item As MSComctlLib.ListItem)
     End Select
 End Sub
 
-Private Function isProjectExist() As Boolean
-    Dim strVbpPath As String
-    strProjectName = InputBox("Please enter your project name:", "New project", "Project1")
-    If Trim(strProjectName) = "" Then
-        'MsgBox "Project name is empty!", vbExclamation, "New Project"
-        isProjectExist = False
-        Exit Function
-    End If
-    strVbpPath = strProjectFolder & strProjectName
-    If Dir(strVbpPath, vbDirectory) <> "" Then
-        isProjectExist = True
-    Else
-        isProjectExist = False
-        MkDir strVbpPath
-        If strProjectType = "DEFAULT" Then
-            WriteVbp strVbpPath & "\" & strProjectName & ".vbp", strProjectName
-        ElseIf strProjectType = "STANDARD" Then
-            WriteFrm strVbpPath & "\frmForm1.frm", "frmForm1", "Form1"
-            WriteVbp strVbpPath & "\" & strProjectName & ".vbp", strProjectName, "frmForm1", strProjectType
-        End If
-        MsgBox "Project created successfully", vbInformation, "Successful"
-        Unload Me
-    End If
-End Function
+'Private Function isProjectExist() As Boolean
+'    Dim strVbpPath As String
+'    strProjectName = InputBox("Please enter your project name:", "New project", "Project1")
+'    If Trim(strProjectName) = "" Then
+'        'MsgBox "Project name is empty!", vbExclamation, "New Project"
+'        isProjectExist = False
+'        Exit Function
+'    End If
+'    strVbpPath = strProjectFolder & strProjectName
+'    If Dir(strVbpPath, vbDirectory) <> "" Then
+'        isProjectExist = True
+'    Else
+'        isProjectExist = False
+'        MkDir strVbpPath
+'        If strProjectType = "DEFAULT" Then
+'            WriteVbp strVbpPath & "\" & strProjectName & ".vbp", strProjectName
+'        ElseIf strProjectType = "STANDARD" Then
+'            WriteFrm strVbpPath & "\frmForm1.frm", "frmForm1", "Form1"
+'            WriteVbp strVbpPath & "\" & strProjectName & ".vbp", strProjectName, "frmForm1", strProjectType
+'        End If
+'        MsgBox "Project created successfully", vbInformation, "Successful"
+'        gstrProjectName = strProjectName
+'        gstrProjectPath = strVbpPath
+'        With mdiMain
+'            .mnuFileMakeExe.Caption = "&Compile " & gstrProjectName & ".exe..."
+'            .mnuFileMakeExeAndRun.Caption = "Compile and &Run " & gstrProjectName & ".exe..."
+'            .mnuFileMakeExe.Enabled = True
+'            .mnuFileMakeExeAndRun.Enabled = True
+'        End With
+'        Unload Me
+'        With frmWindowProject
+'            .Width = 4000
+'            .Height = 4000
+'            .Left = Me.Width - .Width - 300
+'            .Top = 0
+'            .Show
+'        End With
+'    End If
+'End Function
