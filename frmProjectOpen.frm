@@ -64,7 +64,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
 Option Explicit
 
 Private Sub cmdCancel_Click()
@@ -73,4 +72,12 @@ End Sub
 
 Private Sub cmdOK_Click()
     Unload Me
+End Sub
+
+Private Sub Dir1_Change()
+    File1.Path = Dir1.Path
+End Sub
+
+Private Sub Form_Load()
+    Dir1.Path = App.Path & "\Projects\"
 End Sub
