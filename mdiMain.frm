@@ -10,6 +10,10 @@ Begin VB.MDIForm mdiMain
    StartUpPosition =   1  'CenterOwner
    Begin VB.Menu mnuFile 
       Caption         =   "&File"
+      Begin VB.Menu mnuFileManageProject 
+         Caption         =   "&Manage Project"
+         Shortcut        =   ^M
+      End
       Begin VB.Menu mnuFileNewProject 
          Caption         =   "&New Project"
          Shortcut        =   ^N
@@ -19,6 +23,19 @@ Begin VB.MDIForm mdiMain
          Shortcut        =   ^O
       End
       Begin VB.Menu Separator1 
+         Caption         =   "-"
+      End
+      Begin VB.Menu mnuFileMakeExe 
+         Caption         =   "&Compile App.exe..."
+         Enabled         =   0   'False
+         Shortcut        =   {F8}
+      End
+      Begin VB.Menu mnuFileMakeExeAndRun 
+         Caption         =   "Compile and &Run App.exe..."
+         Enabled         =   0   'False
+         Shortcut        =   ^{F8}
+      End
+      Begin VB.Menu Separator2 
          Caption         =   "-"
       End
       Begin VB.Menu mnuExit 
@@ -66,6 +83,12 @@ Begin VB.MDIForm mdiMain
       Begin VB.Menu mnuOptions 
          Caption         =   "&Options..."
       End
+      Begin VB.Menu Separator3 
+         Caption         =   "-"
+      End
+      Begin VB.Menu mnuCommandLine 
+         Caption         =   "&Command Line..."
+      End
    End
    Begin VB.Menu mnuWindow 
       Caption         =   "&Window"
@@ -84,20 +107,59 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+    Private Declare Function OpenProcess Lib "kernel32" (ByVal dwDesiredAccess As Long, ByVal bInheritHandle As Long, ByVal dwProcessId As Long) As Long
+    Private Declare Function WaitForSingleObject Lib "kernel32" (ByVal hHandle As Long, ByVal dwMilliseconds As Long) As Long
+    Private Declare Function CloseHandle Lib "kernel32" (ByVal hObject As Long) As Long
+    
+    Private Const SYNCHRONIZE = &H100000
+    Private Const INFINITE = -1&
+
+    ' Const COMPILER = "C:\Program Files\Microsoft Visual Studio\Vb98\Vb6.exe"
+    Private Const COMPILER = "C:\Program Files (x86)\Microsoft Visual Studio\VB98\VB6.exe"
+    'Const PROJECT_NAME = "Target"
+    
+    Dim strProjectPath As String
+    Dim strProjectVbp As String
+    Dim strProjectExe As String
+    Dim cmd As String
+
+' Check function mnuRunStart_Click()
 
 Private Sub MDIForm_Load()
+    'strProjectPath = App.Path & "\Projects\"
     Me.WindowState = vbMaximized
 End Sub
 
 Private Sub mnuAbout_Click()
     MsgBox App.ProductName & vbCrLf & _
     "Version " & App.Major & "." & App.Minor & " Build " & App.Revision & vbCrLf & vbCrLf & _
-    "Copyright" & Chr(169) & " 2017 Company Name. All rights reserved.", vbInformation, App.Title
+    "Copyright" & Chr(169) & " 2017 " & App.CompanyName & ". All rights reserved.", vbInformation, App.Title
+End Sub
+
+Private Sub mnuCommandLine_Click()
+    With frmCommandLine
+        .Show 'vbModal
+    End With
 End Sub
 
 Private Sub mnuExit_Click()
     ' Show close dialog
     End
+End Sub
+
+Private Sub mnuFileMakeExe_Click()
+    CompileExe
+End Sub
+
+Private Sub mnuFileMakeExeAndRun_Click()
+    CompileExe
+    RunExe
+End Sub
+
+Private Sub mnuFileManageProject_Click()
+    With frmProjectManage
+        .Show vbModal
+    End With
 End Sub
 
 Private Sub mnuFileNewProject_Click()
@@ -113,14 +175,25 @@ Private Sub mnuFileOpenProject_Click()
 End Sub
 
 Private Sub mnuOptions_Click()
-    frmOptions.Show
+    'frmOptions.Show
+End Sub
+
+Private Sub mnuRun_Click()
+    If strProjectExe = "" Then
+        mnuRunStart.Enabled = False
+    End If
 End Sub
 
 Private Sub mnuRunStart_Click()
-    With frmLiveApp
-        .Show
-        .ZOrder 0
-    End With
+    If strProjectExe = "" Then
+        With frmLogin ' frmLiveApp
+            .Show
+            .ZOrder 0
+        End With
+    Else
+        'strProjectExe = App.Path & "\Projects\Test\Test.exe"
+        RunExe
+    End If
 End Sub
 
 Private Sub mnuViewProjectExplorer_Click()
@@ -131,4 +204,58 @@ Private Sub mnuViewProjectExplorer_Click()
         .Top = 0
         .Show
     End With
+End Sub
+
+' Source: http://www.vb-helper.com/howto_make_and_run.html
+' Start the indicated program and wait for it
+' to finish, hiding while we wait.
+Private Sub ShellAndWait(ByVal program_name As String)
+    Dim process_id As Long
+    Dim process_handle As Long
+' Start the program.
+On Error GoTo ShellError
+    process_id = Shell(program_name, vbNormalFocus)
+    On Error GoTo 0
+
+    ' Hide.
+    'Me.Visible = False
+    DoEvents
+
+    ' Wait for the program to finish.
+    ' Get the process handle.
+    process_handle = OpenProcess(SYNCHRONIZE, 0, process_id)
+    If process_handle <> 0 Then
+        WaitForSingleObject process_handle, INFINITE
+        CloseHandle process_handle
+    End If
+
+    ' Reappear.
+    'Me.Visible = True
+    
+    Exit Sub
+ShellError:
+    MsgBox "Error running '" & program_name & "'" & vbCrLf & Err.Description
+End Sub
+
+Private Sub CompileExe()
+    If gstrProjectPath = "" Then Exit Sub
+    strProjectPath = gstrProjectPath
+    ' Get the project file name.
+    If Right$(strProjectPath, 1) <> "\" Then strProjectPath = strProjectPath & "\"
+    strProjectVbp = strProjectPath & gstrProjectName & ".vbp"
+    strProjectExe = strProjectPath & gstrProjectName & ".exe"
+
+    ' Compose the compile command.
+    cmd = """" & COMPILER & """ /MAKE """ & strProjectVbp & """"
+
+    ' Shell this command and wait for it to finish.
+    ShellAndWait cmd
+End Sub
+
+Private Sub RunExe()
+    If strProjectExe = "" Then Exit Sub
+    ' Execute the newly compiled program.
+    cmd = """" & strProjectExe & """"
+    'ShellAndWait cmd
+    Shell cmd, vbNormalFocus
 End Sub
