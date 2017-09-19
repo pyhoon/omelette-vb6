@@ -1,0 +1,30 @@
+Author: Poon Yip Hoon
+Created on: 19 Sep 2017 11:49PM
+Title: Command Line
+
+Available Commands
+==================
+Note: Commands are not case sensitive but parameters can be case sensitive. Take note of blank spaces. Only separate each command with single space.
+
+1) HELP / help
+   Show create project command
+
+2) EXIT / QUIT
+   Close the window
+
+3) VB CREATE Project_Name
+   Project_Name is the name of VB Project to be created
+
+4) VB OPEN Project_Name
+   Open a project or set the active Project given its name
+
+5) VB GENERATE MODEL Model_Name
+   Model_Name is the database and first table name
+
+Coming soon...
+
+6) VB CREATE FORM Form_Name
+
+7) VB CREATE MODULE Module_Name
+
+8) VB CREATE CLASS Class_Name
