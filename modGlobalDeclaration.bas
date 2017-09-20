@@ -5,3 +5,6 @@ Attribute VB_Name = "modGlobalDeclaration"
 'Const WIN_STATE_NORMAL = 0
 'Const WIN_STATE_MINIMIZED = 1
 'Const WIN_STATE_MAXIMIZED = 2
+
+Public gstrProjectName As String
+Public gstrProjectPath As String
