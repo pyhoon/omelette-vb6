@@ -21,6 +21,10 @@ Public Function isProjectExist(strProjectName As String, strProjectType As Strin
         'Exit Function
         strProjectName = "Project1"
     End If
+    ' Create Projects folder if not exists
+    If Dir(strProjectFolder, vbDirectory) = "" Then
+        MkDir strProjectFolder
+    End If        
     strVbpPath = strProjectFolder & strProjectName
     If Dir(strVbpPath, vbDirectory) <> "" Then
         isProjectExist = True
