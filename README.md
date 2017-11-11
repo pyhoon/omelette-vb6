@@ -1,20 +1,19 @@
-# omelette
-VB6 Database Application Framework
+# Omelette
+## *VB6 Database Application Framework*
 
-Origin of omelette:
-I had a delicious omelette dish for dinner before this project started.
+**Omelette** is an open source project intended to be a RAD framework to build database driven applications in Visual Basic 6.0 for 32/64bit Windows XP/ME/7/8.X/10 and also Windows server 2000/2003. The omelette name was coming from a delicious dinner before this project started.
 
-Objective of this project is to provide a framework to develop database driven applications in vb6 for windows. I found source code in vb6 can be open or read using notepad. My idea is to store some frequently used templates and generate the source code files and use VB6 to compile them as an EXE or DLL.
+I found source code in VB6 can be opened or read using notepad. My idea is to store some frequently used templates and generate the source code files and use VB6 to compile them as an EXE or DLL.
 
-VB6 project source code can be generated on the fly. With the addition of a "fake" command line form, developer can generate project files and ms access database using a few commands.
+VB6 project source code can be generated on the fly. With the addition of a "fake" command line form, developer can generate project files and MS Access database using a few commands.
 
-Example: 
+### Example: 
 
-vb create Customer
+`vb create Customer`
 
-vb open Customer 
+`vb open Customer`
 
-vb generate model Customer
+`vb generate model Customer`
 
 
-The above commands create a vb6 project inside Projects folder name Customer with an empty form and a folder name Data with a MS Access database name Data.mdb with a Customer table.
+The above commands create a vb6 project inside _Projects_ folder name _Customer_ with an empty form and a folder name _Data_ with a MS Access database name _Data.mdb_ with a _Customer_ table.
