@@ -195,12 +195,10 @@ Private Sub CreateProjectFromTemplate(strProjectName As String)
     '    MsgBox "Project create failed!", vbExclamation, "Error"
     '    Exit Sub
     'End If
-    If Not CreateProject(strProjectName, strProjectType, gstrProjectPath) Then
+    If Not CreateProject(strProjectName, strProjectType) Then
         MsgBox "Project create failed!", vbExclamation, "Error"
         Exit Sub
     End If
-    'If strProjectFolder = "" Then strProjectFolder = App.Path & "\Projects\"
-    'gstrProjectData = "\Data\"
     gstrProjectDataPath = gstrProjectPath & "\" & gstrProjectData
     gstrProjectItemsFile = "Items.mdb"
     If Dir(gstrProjectDataPath, vbDirectory) <> "" Then
@@ -255,7 +253,7 @@ Private Sub CreateProjectFromTemplate(strProjectName As String)
     End If
     
     ' Update Master
-    If Not ProjectAddNew(strProjectName, gstrProjectFolder, strProjectName & ".vbp") Then
+    If Not ProjectAddNew(strProjectName, gstrProjectFolder, gstrProjectData, strProjectName & ".vbp") Then
         MsgBox "Database add new project failed", vbExclamation, "Error"
         Exit Sub
     End If
