@@ -3,6 +3,8 @@ Attribute VB_Name = "modProject"
 ' Author: Poon Yip Hoon
 ' Modified On : dd/MM/yyyy
 ' Descriptions : Project functions
+' Dependencies:
+' modTextFile
 Option Explicit
 Private i As Integer
 'Private strProjectType As String
@@ -16,8 +18,8 @@ On Error GoTo Catch
     If Trim(strProjectName) = "" Then
         strProjectName = "Project1"
     End If
-    'If strProjectPath = "" Then strProjectPath = gstrProjectPath & strProjectName
-    strProjectPath = gstrProjectPath & strProjectName
+    If strProjectPath = "" Then strProjectPath = gstrProjectPath
+    strProjectPath = gstrProjectPath & "\" & strProjectName
     If Dir(strProjectPath, vbDirectory) <> "" Then
         ProjectExist = True
     Else
@@ -30,13 +32,11 @@ End Function
 
 Public Function CreateProject(strProjectName As String, strProjectType As String, Optional strProjectPath As String) As Boolean
 On Error GoTo Catch
-    'If strProjectPath = "" Then strProjectPath = App.Path & "\Projects\"
     If Trim(strProjectName) = "" Then
         strProjectName = "Project1"
     End If
-    'If strProjectPath = "" Then strProjectPath = App.Path & "\Projects\" & strProjectName
-    strProjectPath = App.Path & "\Projects\" & strProjectName
-    'strProjectPath = strProjectPath & strProjectName
+    If strProjectPath = "" Then strProjectPath = gstrProjectPath
+    strProjectPath = strProjectPath & "\" & strProjectName
     If Dir(strProjectPath, vbDirectory) <> "" Then
     
     Else
@@ -58,8 +58,9 @@ On Error GoTo Catch
             WriteVbp strProjectPath & "\" & strProjectName & ".vbp", strProjectName
         End If
         'MsgBox "Project created successfully", vbInformation, "Successful"
-        gstrProjectName = strProjectName
-        gstrProjectPath = strProjectPath
+        'gstrProjectName = strProjectName
+        'gstrProjectPath = strProjectPath
+        
         With mdiMain
             .mnuFileMakeExe.Caption = "&Compile " & gstrProjectName & ".exe..."
             .mnuFileMakeExeAndRun.Caption = "Compile and &Run " & gstrProjectName & ".exe..."
