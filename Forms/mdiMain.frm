@@ -72,6 +72,7 @@ Begin VB.MDIForm mdiMain
       Caption         =   "&Project"
       Begin VB.Menu mnuFileManageProject 
          Caption         =   "&Manage Project"
+         Enabled         =   0   'False
          Shortcut        =   ^M
       End
    End
@@ -235,19 +236,20 @@ Private Sub InitGlobalVariables()
     gstrProjectName = ""
     'gstrProjectFile = ""
     
-    gstrProjectFolder = "\Projects\" ' default
-    gstrProjectPath = App.Path & gstrProjectFolder
-    gstrProjectData = "Data\"
-    gstrProjectDataPath = "" ' gstrProjectPath & gstrProjectData
+    gstrProjectFolder = "Projects"
+    gstrProjectPath = App.Path & "\" & gstrProjectFolder
+    gstrProjectData = "Storage"
+    gstrProjectDataPath = "" ' gstrProjectPath & "\" & gstrProjectName & "\" & gstrProjectData
     gstrProjectDataFile = "Data.mdb"
     gstrProjectDataPassword = ""
     gstrProjectItemsFile = "Items.mdb"
     gstrProjectItemsPassword = ""
     
-    gstrMasterFolder = "\"
-    gstrMasterPath = App.Path & gstrMasterFolder
-    gstrMasterData = "Databases\"
-    gstrMasterDataPath = gstrMasterPath & gstrMasterData
+    'gstrMasterFolder = "\"
+    gstrMasterPath = App.Path '& gstrMasterFolder
+    'gstrMasterFolder = gstrMasterPath & "\" & gstrMasterFolder
+    gstrMasterData = "Databases"
+    gstrMasterDataPath = gstrMasterPath & "\" & gstrMasterData
     gstrMasterDataFile = "Projects.mdb"
     gstrMasterDataPassword = ""
 End Sub
@@ -284,13 +286,14 @@ ShellError:
 End Sub
 
 Private Sub CompileExe()
-    If gstrProjectPath = "" Then Exit Sub
-    strProjectPath = gstrProjectPath
+    If gstrProjectName = "" Or gstrProjectFile = "" Then Exit Sub
+    strProjectPath = App.Path & "\" & gstrProjectFolder
     ' Get the project file name.
-    If Right$(strProjectPath, 1) <> "\" Then strProjectPath = strProjectPath & "\"
-    strProjectVbp = strProjectPath & gstrProjectName & ".vbp"
-    strProjectExe = strProjectPath & gstrProjectName & ".exe"
-
+    'If Right$(strProjectPath, 1) <> "\" Then strProjectPath = strProjectPath & "\"
+    strProjectVbp = strProjectPath & "\" & gstrProjectName & "\" & gstrProjectName & ".vbp" ' gstrProjectFile
+    strProjectExe = strProjectPath & "\" & gstrProjectName & "\" & gstrProjectName & ".exe"
+    
+    If Not FileExists(strProjectVbp) Then Exit Sub
     ' Compose the compile command.
     cmd = """" & COMPILER & """ /MAKE """ & strProjectVbp & """"
 
@@ -300,6 +303,7 @@ End Sub
 
 Private Sub RunExe()
     If strProjectExe = "" Then Exit Sub
+    If Not FileExists(strProjectExe) Then Exit Sub
     ' Execute the newly compiled program.
     cmd = """" & strProjectExe & """"
     'ShellAndWait cmd
