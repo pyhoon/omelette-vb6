@@ -371,7 +371,7 @@ Private Function CheckCommand(strValue As String) As Boolean
                 strHelp = vbCrLf & "[ Sample Commands ]"
                 strHelp = strHelp & vbCrLf & "vb create project_name" & vbTab & vbTab & "to create a new project"
                 strHelp = strHelp & vbCrLf & "vb open project_name" & vbTab & vbTab & "to open existing project (inside Projects folder)"
-                strHelp = strHelp & vbCrLf & "vb generate user" & vbTab & vbTab & vbTab & "to create a default Users table"
+                strHelp = strHelp & vbCrLf & "vb generate user" & vbTab & vbTab & vbTab & "to create a default User table"
                 strHelp = strHelp & vbCrLf & "vb generate model model_name" & vbTab & "to create a database with table name model_name"
                 'strHelp = strHelp & vbCrLf & "vb g m model_name" & vbTab & vbTab & vbTab & "same as 'vb generate model model_name'"
                 'strHelp = strHelp & vbCrLf & "vb list model" & vbTab & vbTab & vbTab & "list all models inside the database"
