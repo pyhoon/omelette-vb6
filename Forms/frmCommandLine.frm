@@ -48,7 +48,7 @@ Private strInput As String
 Private strViewText As String
 Private strProjectType As String
 Private strProjectName As String
-Private strProjectFolder As String
+'Private strProjectFolder As String
 Private strProjectPath As String
 Private strFormName As String
 Private strFormFile As String
@@ -114,21 +114,14 @@ Private Function CheckCommand(strValue As String) As Boolean
                                                 End If
                                                 Debug.Print strProjectName
                                                 'Debug.Print strProjectFolder
-                                                If strProjectFolder = "" Then strProjectFolder = App.Path & "\Projects\"
-                                                If Dir(strProjectFolder & strProjectName & "\Data", vbDirectory) <> "" Then
+                                                gstrProjectDataPath = gstrProjectPath & "\" & strProjectName & "\" & gstrProjectData
+                                                If Dir(gstrProjectDataPath, vbDirectory) <> "" Then
                                                 
                                                 Else
-                                                    Debug.Print strProjectFolder & strProjectName
-                                                    MkDir strProjectFolder & strProjectName & "\Data"
+                                                    MkDir gstrProjectDataPath
                                                 End If
-                                                'strProjectData = "\Data"
-                                                If gstrProjectDataPath = "" Then
-                                                    gstrProjectDataPath = strProjectFolder & strProjectName & "\" & gstrProjectData
-                                                    gstrProjectFolder = strProjectFolder
-                                                    gstrProjectName = strProjectName
-                                                End If
-                                                'gstrProjectDataFile = "Data.mdb"
-                                                If Not FileExists(gstrProjectDataPath & gstrProjectDataFile) Then
+                                                gstrProjectName = strProjectName
+                                                If Not FileExists(gstrProjectDataPath & "\" & gstrProjectDataFile) Then
                                                     SetViewText "Scaffolding..."
                                                     ShowCommand strViewText
                                                     If Not ProjectCreateDatabase Then
@@ -138,8 +131,15 @@ Private Function CheckCommand(strValue As String) As Boolean
                                                         Exit Function
                                                     End If
                                                 End If
+                                                ' Disallow model = 'user'
+                                                If LCase(strCommand(3)) = "user" Then
+                                                    SetViewText "Command not allowed. Please use command: vb generate user"
+                                                    ShowCommand strViewText
+                                                    CheckCommand = True
+                                                    Exit Function
+                                                End If
                                                 ' todo: check is table already exist?
-                                                If CreateModel(Format(strCommand(3), vbProperCase)) Then ' [User]
+                                                If CreateModel(Format(strCommand(3), vbProperCase)) Then
                                                     SetViewText "Model created successful!"
                                                     ShowCommand strViewText
                                                     CheckCommand = True
@@ -190,44 +190,36 @@ Private Function CheckCommand(strValue As String) As Boolean
                                     ShowCommand strViewText
                                     CheckCommand = True
                                 Else
-                                    'strProjectFolder = App.Path & "\Projects\"
-                                    'strProjectName = Format(strCommand(2), vbProperCase)
                                     strProjectName = Right$(strValue, Len(strValue) - Len("vb create ")) ' "vb  create" 2 spaces or more in between is invalid
-                                    strProjectName = Trim(Format$(strProjectName, vbProperCase))
-                                    mdiMain.Caption = App.Title & " - [" & strProjectName & "]"
-                                    mdiMain.sbStatus.Panels(1).Text = strProjectName
-                                    
+                                    strProjectName = Format$(Trim(strProjectName), vbProperCase)
                                     If strProjectName = "" Then
                                         SetViewText "Invalid Project Name!"
                                         ShowCommand strViewText
                                         CheckCommand = True
                                         Exit Function
                                     End If
-                                    If ProjectExist(strProjectName, gstrProjectPath) Then
+                                    If ProjectExist(strProjectName) Then
                                         SetViewText "Project already exist!"
                                         ShowCommand strViewText
                                         CheckCommand = True
                                         Exit Function
                                     End If
                                     ' Create project
-                                    If Not CreateProject(strProjectName, "STANDARD", gstrProjectPath) Then
+                                    If Not CreateProject(strProjectName, "STANDARD") Then
                                         SetViewText "Project create failed!"
                                         ShowCommand strViewText
                                         CheckCommand = True
                                         Exit Function
                                     End If
-                                    If strProjectFolder = "" Then strProjectFolder = App.Path & "\Projects\"
-                                    If Dir(strProjectFolder & strProjectName & "\Data", vbDirectory) <> "" Then
-                                    
+                                    gstrProjectName = strProjectName
+                                    gstrProjectFile = strProjectName & ".vbp"
+                                    gstrProjectDataPath = gstrProjectPath & "\" & gstrProjectName & "\" & gstrProjectData
+                                    If Dir(gstrProjectDataPath, vbDirectory) <> "" Then
+                                                
                                     Else
-                                        MkDir strProjectFolder & strProjectName & "\Data"
+                                        MkDir gstrProjectDataPath
                                     End If
-                                    gstrProjectData = "\Data\"
-                                    'If gstrProjectDataPath = "" Then
-                                        gstrProjectDataPath = strProjectFolder & strProjectName & "\" & gstrProjectData
-                                    'End If
-                                    gstrProjectItemsFile = "Items.mdb"
-                                    If Not FileExists(gstrProjectDataPath & gstrProjectItemsFile) Then
+                                    If Not FileExists(gstrProjectDataPath & "\" & gstrProjectItemsFile) Then
                                         SetViewText "Creating project info..."
                                         ShowCommand strViewText
                                         If Not ItemsCreateDatabase Then
@@ -271,10 +263,7 @@ Private Function CheckCommand(strValue As String) As Boolean
                                     ' Save generated file list into a database file
                                     ' todo: Check Data folder exist and create if not
                                     ' todo: Generate File.mdb with tables (from code or copy from a template ?)
-                                    'gstrProjectDataPath = strProjectFolder & strProjectName & "\" & gstrProjectData
-                                    'gstrProjectItemsFile = "Items.mdb"
-                                    strProjectPath = gstrProjectPath & strProjectName
-                                    If Not ItemAddNew(strProjectName, strProjectPath, strProjectName & ".vbp", "Project") Then
+                                    If Not ItemAddNew(gstrProjectName, gstrProjectPath & "\" & gstrProjectName, gstrProjectFile, "Project") Then
                                         SetViewText "Database add new item (project) failed"
                                         ShowCommand strViewText
                                         CheckCommand = True
@@ -282,19 +271,37 @@ Private Function CheckCommand(strValue As String) As Boolean
                                     End If
                                     strFormName = "frmForm1"
                                     strFormFile = "frmForm1"
-                                    If Not ItemAddNew(strFormName, strProjectPath, strFormFile & ".frm", "Form") Then
+                                    If Not ItemAddNew(strFormName, gstrProjectPath & "\" & gstrProjectName, strFormFile & ".frm", "Form") Then
                                         SetViewText "Database add new item (form) failed"
                                         ShowCommand strViewText
                                         CheckCommand = True
                                         Exit Function
                                     End If
                                     ' Update Master
-                                    If Not ProjectAddNew(strProjectName, strProjectFolder, strProjectName & ".vbp") Then
+                                    If Not ProjectAddNew(gstrProjectName, gstrProjectPath & "\" & gstrProjectName, gstrProjectData, gstrProjectFile) Then
                                         SetViewText "Database add new project failed"
                                         ShowCommand strViewText
                                         CheckCommand = True
                                         Exit Function
                                     End If
+                                    With mdiMain
+                                        .Caption = App.Title & " - [" & gstrProjectName & "]"
+                                        .sbStatus.Panels(1).Text = gstrProjectName
+                                        .mnuFileManageProject.Enabled = True
+                                        .mnuFileMakeExe.Caption = "&Compile " & gstrProjectName & ".exe..."
+                                        .mnuFileMakeExeAndRun.Caption = "Compile and &Run " & gstrProjectName & ".exe..."
+                                        .mnuFileMakeExe.Enabled = True
+                                        .mnuFileMakeExeAndRun.Enabled = True
+                                    End With
+                                    Unload frmWindowProject
+                                    With frmWindowProject
+                                        .Width = 4000
+                                        .Height = 4000
+                                        .Left = mdiMain.Width - .Width - 300
+                                        .Top = 0
+                                        .Show
+                                        '.RefreshTreeview
+                                    End With
                                     SetViewText "Project created successfully"
                                     ShowCommand strViewText
                                     CheckCommand = True
@@ -305,6 +312,7 @@ Private Function CheckCommand(strValue As String) As Boolean
                             If UBound(strCommand) > 1 Then
                                 strProjectName = Right$(strValue, Len(strValue) - Len("vb open ")) ' "vb  open" 2 spaces or more in between is invalid
                                 strProjectName = Trim(Format$(strProjectName, vbProperCase))
+                                strProjectPath = App.Path & "\" & gstrProjectFolder
                                 If strProjectName = "" Then
                                     SetViewText "Invalid Project Name!"
                                     ShowCommand strViewText
@@ -312,8 +320,7 @@ Private Function CheckCommand(strValue As String) As Boolean
                                     'mdiMain.sbStatus.Panels(1).Text = ""
                                     Exit Function
                                 End If
-                                strProjectFolder = App.Path & "\Projects\"
-                                If Not FileExists(strProjectFolder & strProjectName & "\" & strProjectName & ".vbp") Then
+                                If Not FileExists(strProjectPath & "\" & strProjectName & "\" & strProjectName & ".vbp") Then
                                     SetViewText "Project not found!"
                                     ShowCommand strViewText
                                     strProjectName = ""
@@ -321,14 +328,31 @@ Private Function CheckCommand(strValue As String) As Boolean
                                     'mdiMain.sbStatus.Panels(1).Text = ""
                                     Exit Function
                                 Else
+                                    'gstrProjectFolder = strProjectFolder
+                                    gstrProjectName = strProjectName
+                                    gstrProjectDataPath = strProjectPath & "\" & gstrProjectName & "\" & gstrProjectData
+                                    gstrProjectFile = strProjectName & ".vbp"
+                                    With mdiMain
+                                        .Caption = App.Title & " - [" & gstrProjectName & "]"
+                                        .sbStatus.Panels(1).Text = strProjectPath & "\" & gstrProjectName ' gstrProjectName
+                                        .mnuFileManageProject.Enabled = True
+                                        .mnuFileMakeExe.Caption = "&Compile " & gstrProjectName & ".exe..."
+                                        .mnuFileMakeExeAndRun.Caption = "Compile and &Run " & gstrProjectName & ".exe..."
+                                        .mnuFileMakeExe.Enabled = True
+                                        .mnuFileMakeExeAndRun.Enabled = True
+                                    End With
+                                    Unload frmWindowProject
+                                    With frmWindowProject
+                                        .Width = 4000
+                                        .Height = 4000
+                                        .Left = mdiMain.Width - .Width - 300
+                                        .Top = 0
+                                        .Show
+                                        '.RefreshTreeview
+                                    End With
                                     SetViewText "Project opened successfully!"
                                     ShowCommand strViewText
                                     CheckCommand = True
-                                    mdiMain.Caption = App.Title & " - [" & strProjectName & "]"
-                                    mdiMain.sbStatus.Panels(1).Text = strProjectName
-                                    gstrProjectDataPath = strProjectFolder & strProjectName & "\" & gstrProjectData
-                                    gstrProjectFolder = strProjectFolder
-                                    gstrProjectName = strProjectName
                                     Exit Function
                                 End If
                             End If
@@ -347,6 +371,7 @@ Private Function CheckCommand(strValue As String) As Boolean
                 strHelp = vbCrLf & "[ Sample Commands ]"
                 strHelp = strHelp & vbCrLf & "vb create project_name" & vbTab & vbTab & "to create a new project"
                 strHelp = strHelp & vbCrLf & "vb open project_name" & vbTab & vbTab & "to open existing project (inside Projects folder)"
+                strHelp = strHelp & vbCrLf & "vb generate user" & vbTab & vbTab & vbTab & "to create a default Users table"
                 strHelp = strHelp & vbCrLf & "vb generate model model_name" & vbTab & "to create a database with table name model_name"
                 'strHelp = strHelp & vbCrLf & "vb g m model_name" & vbTab & vbTab & vbTab & "same as 'vb generate model model_name'"
                 'strHelp = strHelp & vbCrLf & "vb list model" & vbTab & vbTab & vbTab & "list all models inside the database"
