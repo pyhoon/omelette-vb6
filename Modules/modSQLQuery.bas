@@ -1,8 +1,8 @@
 Attribute VB_Name = "modSQLQuery"
-' Version : 0.1
+' Version : 0.2
 ' Author: Poon Yip Hoon
 ' Created on: 26 Aug 2017
-' Modified on:
+' Modified on: 22 Feb 2018
 ' Descriptions: Commonly use database query for CRUD
 ' Dependencies: modDatabase
 
@@ -140,6 +140,94 @@ End Sub
 
 Public Sub SQL_DELETE(strTable As String)
     gstrSQL = "DELETE FROM " & strTable
+End Sub
+
+' References:
+' http://allenbrowne.com/ser-49.html
+' https://docs.microsoft.com/en-us/sql/odbc/microsoft/microsoft-access-data-types
+' https://msdn.microsoft.com/en-us/library/aa140015(office.10).aspx (VERY GOOD)
+
+Public Sub SQL_CREATE(strTable As String, Optional strPrefix As String = "")
+    gstrSQL = "CREATE TABLE " & strPrefix & strTable
+    gstrSQL = gstrSQL & " ("
+End Sub
+
+Public Sub SQL_COLUMN_ID(Optional strColumnName As String = "ID", Optional blnPrimaryKey As Boolean = True, Optional blnAutoIncrement As Boolean = True, Optional blnEndComma As Boolean = True)
+    gstrSQL = gstrSQL & "[" & strColumnName & "]"
+    If blnAutoIncrement Then gstrSQL = gstrSQL & " AUTOINCREMENT"
+    If blnPrimaryKey Then gstrSQL = gstrSQL & " PRIMARY KEY"
+    If blnEndComma = True Then gstrSQL = gstrSQL & "," 'gstrSQL = gstrSQL & ","
+End Sub
+
+' Short Text
+Public Sub SQL_COLUMN_TEXT(strColumnName As String, Optional intLength As Integer = 255, Optional strDefault As String = "", Optional blnNullable As Boolean = True, Optional blnBeginSpace As Boolean = True, Optional blnEndComma As Boolean = True)
+    If blnBeginSpace Then gstrSQL = gstrSQL & " "
+    gstrSQL = gstrSQL & strColumnName & " TEXT(" & intLength & ")"
+    If strDefault <> "" Then gstrSQL = gstrSQL & " DEFAULT """ & strDefault & """"
+    If Not blnNullable Then gstrSQL = gstrSQL & " NOT NULL"
+    If blnEndComma = True Then gstrSQL = gstrSQL & ","
+End Sub
+
+' Long Text
+Public Sub SQL_COLUMN_MEMO(strColumnName As String, Optional strDefault As String = "", Optional blnNullable As Boolean = True, Optional blnBeginSpace As Boolean = True, Optional blnEndComma As Boolean = True)
+    If blnBeginSpace Then gstrSQL = gstrSQL & " "
+    gstrSQL = gstrSQL & strColumnName & " MEMO"
+    If strDefault <> "" Then gstrSQL = gstrSQL & " DEFAULT " & strDefault
+    If Not blnNullable Then gstrSQL = gstrSQL & " NOT NULL"
+    If blnEndComma = True Then gstrSQL = gstrSQL & ","
+End Sub
+
+' NOTE: Not yet used or tested
+Public Sub SQL_COLUMN_NUMBER(strColumnName As String, Optional strFieldSize As String = "LONG", Optional strDefault As String = "", Optional blnNullable As Boolean = True, Optional blnBeginSpace As Boolean = True, Optional blnEndComma As Boolean = True)
+    If blnBeginSpace Then gstrSQL = gstrSQL & " "
+    Select Case strFieldSize
+        Case "BYTE"
+            gstrSQL = gstrSQL & strColumnName & " BYTE"
+        Case "SHORT"
+            gstrSQL = gstrSQL & strColumnName & " SHORT"
+        Case "INTEGER" ' Same as SHORT ?
+            gstrSQL = gstrSQL & strColumnName & " INTEGER"
+        Case "LONG" ' Default
+            gstrSQL = gstrSQL & strColumnName & " LONG"
+        Case "SINGLE"
+            gstrSQL = gstrSQL & strColumnName & " SINGLE"
+        Case "DOUBLE"
+            gstrSQL = gstrSQL & strColumnName & " DOUBLE"
+        Case "REPLICA", "GUID"
+            gstrSQL = gstrSQL & strColumnName & " GUID"
+        Case "DECIMAL"
+            gstrSQL = gstrSQL & strColumnName & " DECIMAL (18, 0)" ' (precision, scale) 9, 4
+        Case Else ' LONG
+            gstrSQL = gstrSQL & strColumnName & " LONG"
+    End Select
+    If strDefault <> "" Then gstrSQL = gstrSQL & " DEFAULT " & strDefault
+    If Not blnNullable Then gstrSQL = gstrSQL & " NOT NULL"
+    If blnEndComma = True Then gstrSQL = gstrSQL & ","
+End Sub
+
+Public Sub SQL_COLUMN_BIT(strColumnName As String, Optional strDefault As String = "-1", Optional blnNullable As Boolean = True, Optional blnBeginSpace As Boolean = True, Optional blnEndComma As Boolean = True)
+    If blnBeginSpace Then gstrSQL = gstrSQL & " "
+    gstrSQL = gstrSQL & strColumnName & " BIT"
+    If strDefault <> "" Then gstrSQL = gstrSQL & " DEFAULT " & strDefault
+    If Not blnNullable Then gstrSQL = gstrSQL & " NOT NULL"
+    If blnEndComma = True Then gstrSQL = gstrSQL & ","
+End Sub
+
+' Same as SQL_COLUMN_BIT
+Public Sub SQL_COLUMN_YESNO(strColumnName As String, Optional strDefault As String = "Yes", Optional blnNullable As Boolean = True, Optional blnBeginSpace As Boolean = True, Optional blnEndComma As Boolean = True)
+    If blnBeginSpace Then gstrSQL = gstrSQL & " "
+    gstrSQL = gstrSQL & strColumnName & " YESNO"
+    If strDefault <> "" Then gstrSQL = gstrSQL & " DEFAULT " & strDefault
+    If Not blnNullable Then gstrSQL = gstrSQL & " NOT NULL"
+    If blnEndComma = True Then gstrSQL = gstrSQL & ","
+End Sub
+
+Public Sub SQL_COLUMN_DATETIME(strColumnName As String, Optional strDefault As String = "", Optional blnNullable As Boolean = True, Optional blnBeginSpace As Boolean = True, Optional blnEndComma As Boolean = True)
+    If blnBeginSpace Then gstrSQL = gstrSQL & " "
+    gstrSQL = gstrSQL & strColumnName & " DATETIME"
+    If strDefault <> "" Then gstrSQL = gstrSQL & " DEFAULT " & strDefault
+    If Not blnNullable Then gstrSQL = gstrSQL & " NOT NULL"
+    If blnEndComma = True Then gstrSQL = gstrSQL & ","
 End Sub
 
 Public Sub SQL_Comma()
