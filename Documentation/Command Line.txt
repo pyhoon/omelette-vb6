@@ -1,5 +1,6 @@
 Author: Poon Yip Hoon
 Created on: 19 Sep 2017 11:49PM
+Updated on: 22 Feb 2018 06:45PM
 Title: Command Line
 
 Available Commands
@@ -19,12 +20,15 @@ Note: Commands are not case sensitive but parameters can be case sensitive. Take
    Open a project or set the active Project given its name
 
 5) VB GENERATE MODEL Model_Name
-   Model_Name is the database and first table name
+   Create a new table Model_Name in Data.mdb
+
+6) VB GENERATE USER
+   Create Users table for login credentials
 
 Coming soon...
 
-6) VB CREATE FORM Form_Name
+VB CREATE FORM Form_Name
 
-7) VB CREATE MODULE Module_Name
+VB CREATE MODULE Module_Name
 
-8) VB CREATE CLASS Class_Name
+VB CREATE CLASS Class_Name
