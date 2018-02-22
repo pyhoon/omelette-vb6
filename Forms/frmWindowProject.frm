@@ -24,19 +24,24 @@ Begin VB.Form frmWindowProject
       ImageWidth      =   16
       ImageHeight     =   16
       MaskColor       =   12632256
+      UseMaskColor    =   0   'False
       _Version        =   393216
       BeginProperty Images {2C247F25-8591-11D1-B16A-00C0F0283628} 
-         NumListImages   =   3
+         NumListImages   =   4
          BeginProperty ListImage1 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmWindowProject.frx":000C
             Key             =   ""
          EndProperty
          BeginProperty ListImage2 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "frmWindowProject.frx":05A6
+            Picture         =   "frmWindowProject.frx":62A6
             Key             =   ""
          EndProperty
          BeginProperty ListImage3 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "frmWindowProject.frx":0B40
+            Picture         =   "frmWindowProject.frx":7168
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage4 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "frmWindowProject.frx":7FBA
             Key             =   ""
          EndProperty
       EndProperty
@@ -63,129 +68,109 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-'Dim strProjectName As String
-
 Private Sub Form_Load()
-    'RefreshTreeview
     ReadItemsData
 End Sub
 
 Public Sub ReadItemsData()
+    Dim DB As New OmlDatabase
+    Dim rst As ADODB.Recordset
+    Dim i As Integer
     Dim strLabel As String
     Dim strKey As String
     Dim nod As Node
-    Dim rst As adodb.Recordset
-    Dim i As Integer
 On Error GoTo Catch
-'    If gstrProjectName = "" Then
-'        ItemOpenDB
-'        Set rst = ItemOpenTable("Project")
-'        rst.MoveFirst
-'        gstrProjectName = rst!ProjectName
-'        CloseRS rst
-'        ItemCloseDB
-'    End If
+    If gstrProjectName = "" Then Exit Sub
     With tvwFiles
         .Enabled = False
         .Nodes.Clear
-        If gstrProjectName = "" Then Exit Sub
-                
-        'If strProjectFolder = "" Then strProjectFolder = App.Path & "\Projects\"
-        'gstrProjectDataPath = strProjectFolder & strProjectName & "\" & gstrProjectData
-        ItemOpenDB
-        If gconItem Is Nothing Then ' gconItem.State <> adStateOpen Then
-            'ItemCloseDB
-            Exit Sub
-        End If
-        Set rst = ItemOpenTable("Project")
-        If rst Is Nothing Then
-            'CloseRS rst
-            Exit Sub
-        End If
-        With rst
-            If .EOF Then
-                CloseRS rst
-                Exit Sub
-            End If
-            .MoveFirst
-            strKey = "G1"
-            strLabel = rst!ProjectName & " (" & !ProjectFile & ")" ' ProjectTitle (ProjectTitle.vbp)
-            Set nod = tvwFiles.Nodes.Add(, tvwChild, strKey, strLabel, 1)
-            nod.Bold = True
-            nod.Expanded = True
-            CloseRS rst
-        End With
-        ItemCloseDB
-                       
-        strKey = "Forms"
-        strLabel = "Forms"
-        Set nod = .Nodes.Add("G1", tvwChild, strKey, strLabel, 2)
-        nod.Expanded = True
-                    
-        ItemOpenDB
-        Set rst = ItemOpenTable("Forms")
-        With rst
-            '.MoveFirst
-            While Not .EOF
-                i = i + 1
-                strKey = "Item" & i
-                strLabel = !FormName & " (" & !FormFile & ")"
-                Set nod = tvwFiles.Nodes.Add("Forms", tvwChild, strKey, strLabel, 3)
-                .MoveNext
-            Wend
-            CloseRS rst
-        End With
-        ItemCloseDB
-            
-        'strKey = "Item1"
-        'strLabel = "frmForm1 (frmForm1.frm)"
-        'Set nod = .Nodes.Add("Forms", tvwChild, strKey, strLabel, 3)
-        '.Font.Name = "Verdana" 'Verdana
-        '.Font.Charset = 0
-        '.Font.Size = 10
-        .Enabled = True
     End With
+    With DB
+        '.DataPath = gstrMasterDataPath & "\"
+        '.DataFile = gstrMasterDataFile
+        .DataPath = gstrProjectDataPath & "\"
+        .DataFile = gstrProjectItemsFile
+        .OpenMdb
+        SQL_SELECT_ALL "Project"
+        SQL_WHERE_Text "ProjectName", gstrProjectName
+        Set rst = .OpenRs(gstrSQL)
+        If .ErrorDesc <> "" Then
+            'MsgBox "Error: " & .ErrorDesc, vbExclamation, "ReadItemsData"
+            LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
+            .CloseRS rst
+            .CloseMdb
+            Exit Sub
+        End If
+        If Not (rst Is Nothing Or rst.EOF) Then
+            With rst
+                .MoveFirst
+                strKey = "G1"
+                strLabel = rst!ProjectName & " (" & !ProjectFile & ")"
+                Set nod = tvwFiles.Nodes.Add(, tvwChild, strKey, strLabel, 1)
+                nod.Bold = True
+                nod.Expanded = True
+            End With
+        End If
+        .CloseRS rst
+            
+        SQL_SELECT_ALL "Forms"
+        Set rst = .OpenRs(gstrSQL)
+        If .ErrorDesc <> "" Then
+            'MsgBox "Error: " & .ErrorDesc, vbExclamation, "ReadItemsData"
+            LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
+            .CloseRS rst
+            .CloseMdb
+            Exit Sub
+        End If
+        If Not (rst Is Nothing Or rst.EOF) Then
+            strKey = "Forms"
+            strLabel = "Forms"
+            Set nod = tvwFiles.Nodes.Add("G1", tvwChild, strKey, strLabel, 2)
+            nod.Expanded = True
+            With rst
+                '.MoveFirst
+                While Not .EOF
+                    i = i + 1
+                    strKey = "Item" & i
+                    strLabel = !FormName & " (" & !FormFile & ")"
+                    Set nod = tvwFiles.Nodes.Add("Forms", tvwChild, strKey, strLabel, 3)
+                    .MoveNext
+                Wend
+            End With
+        End If
+        .CloseRS rst
+        
+        SQL_SELECT_ALL "Modules"
+        Set rst = .OpenRs(gstrSQL)
+        If .ErrorDesc <> "" Then
+            'MsgBox "Error: " & .ErrorDesc, vbExclamation, "ReadItemsData"
+            LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
+            .CloseRS rst
+            .CloseMdb
+            Exit Sub
+        End If
+        If Not (rst Is Nothing Or rst.EOF) Then
+            strKey = "Modules"
+            strLabel = "Modules"
+            Set nod = tvwFiles.Nodes.Add("G1", tvwChild, strKey, strLabel, 2)
+            nod.Expanded = True
+            With rst
+                '.MoveFirst
+                While Not .EOF
+                    i = i + 1
+                    strKey = "Item" & i
+                    strLabel = !ModuleName & " (" & !ModuleFile & ")"
+                    Set nod = tvwFiles.Nodes.Add("Modules", tvwChild, strKey, strLabel, 4)
+                    .MoveNext
+                Wend
+            End With
+        End If
+        .CloseRS rst
+        .CloseMdb
+    End With
+    tvwFiles.Enabled = True
 Exit Sub
 Catch:
-    MsgBox Err.Number & " - " & Err.Description, vbExclamation, "ReadItemsData"
+    'MsgBox Err.Number & " - " & Err.Description, vbExclamation, "ReadItemsData"
     LogError "Error", "ReadItemsData/frmWindowProject", Err.Description
 End Sub
-
-'Public Sub RefreshTreeview(Optional strProjectType As String = "STANDARD")  ' Temporary use project type
-'    Dim strLabel As String
-'    Dim strKey As String
-'    Dim nod As Node
-'On Error GoTo Catch
-'    With tvwFiles
-'        .Enabled = False
-'        .Nodes.Clear
-'
-'        If gstrProjectName = "" Then Exit Sub
-'
-'        strKey = "G1"
-'        strLabel = gstrProjectName & " (" & gstrProjectName & ".vbp)" ' ProjectTitle (ProjectTitle.vbp)
-'        Set nod = .Nodes.Add(, tvwChild, strKey, strLabel, 1)
-'        nod.Bold = True
-'        nod.Expanded = True
-'
-'        ' Temporary show STANDARD project
-'        If strProjectType = "STANDARD" Then
-'            strKey = "Forms"
-'            strLabel = "Forms"
-'            Set nod = .Nodes.Add("G1", tvwChild, strKey, strLabel, 2)
-'            nod.Expanded = True
-'
-'            strKey = "Item1"
-'            strLabel = "frmForm1 (frmForm1.frm)"
-'            Set nod = .Nodes.Add("Forms", tvwChild, strKey, strLabel, 3)
-'            '.Font.Name = "Verdana" 'Verdana
-'            '.Font.Charset = 0
-'            '.Font.Size = 10
-'            .Enabled = True
-'        End If
-'    End With
-'Exit Sub
-'Catch:
-'    MsgBox Err.Number & " - " & Err.Description, vbExclamation, "RefreshTreeview"
-'    LogError "Error", "RefreshTreeview/frmWindowProject", Err.Description
-'End Sub
