@@ -130,63 +130,64 @@ End Sub
 
 Private Sub Form_Load()
     Dir1.Path = App.Path & "\Projects\"
-    'ListProjects
 End Sub
 
-'Private Sub ListProjects()
-'    Dim rst As New ADODB.Recordset
-'    MasterOpenDB
-'    Set rst = MasterOpenTable("Project")
-'    With rst
-'        If Not .EOF Then
-'            lstProject.Clear
-'            While Not .EOF
-'                lstProject.AddItem !ProjectName
-'                .MoveNext
-'            Wend
-'        End If
-'    End With
-'    MasterCloseDB
-'End Sub
-
-'Private Sub lstProject_Click()
-'    strProjectName = lstProject.Text
-'End Sub
-
-'Private Sub lstProject_DblClick()
-'    gstrProjectName = strProjectName
-'    OpenProject strProjectName
-'    Unload Me
-'End Sub
-
 Private Function SearchProject(ByVal strProjectPath As String, ByVal strProjectFile As String, ByRef strProjectName As String) As Boolean
-    Dim rst As New ADODB.Recordset
-    'SQL_SELECT
-    'SQL_FROM "Project"
-    SQL_SELECT_ALL "Project"
-    SQL_WHERE_Text "ProjectPath", strProjectPath
-    SQL_AND_Text "ProjectFile", strProjectFile
-    MasterOpenDB
-    Set rst = MasterOpenRS(gstrSQL)
-    With rst
-        If Not .EOF Then
-            SearchProject = True
-            strProjectName = !ProjectName
-        Else
+    Dim DB As New OmlDatabase
+    Dim rst As ADODB.Recordset
+    With DB
+        .DataPath = gstrMasterDataPath & "\"
+        .DataFile = gstrMasterDataFile
+        '.DataPath = gstrProjectDataPath & "\"
+        '.DataFile = gstrProjectItemsFile
+        .OpenMdb
+        'SQL_SELECT
+        'SQL_FROM "Project"
+        SQL_SELECT_ALL "Project"
+        SQL_WHERE_Text "ProjectPath", strProjectPath
+        SQL_AND_Text "ProjectFile", strProjectFile
+        Set rst = .OpenRs(gstrSQL)
+        If .ErrorDesc <> "" Then
+            LogError "Error", "SearchProject/frmProjectOpen", .ErrorDesc
+            .CloseRS rst
+            .CloseMdb
             SearchProject = False
+            Exit Function
         End If
+        If rst Is Nothing Or rst.EOF Then
+            .CloseRS rst
+            .CloseMdb
+            SearchProject = False
+            Exit Function
+        End If
+        With rst
+            If Not .EOF Then
+                strProjectName = !ProjectName
+                SearchProject = True
+            Else
+                SearchProject = False
+            End If
+        End With
+        .CloseRS rst
+        .CloseMdb
     End With
-    MasterCloseDB
 End Function
 
 Private Sub OpenProject(ByVal strProjectPath As String, ByVal strProjectFile As String, ByVal strProjectName As String)
     gstrProjectName = strProjectName
     gstrProjectPath = strProjectPath
     gstrProjectFile = strProjectFile
-    gstrProjectDataPath = Dir1.Path & "\" & gstrProjectData '?
+    gstrProjectDataPath = strProjectPath & "\" & gstrProjectData '?
     'gstrProjectDataPath = gstrProjectPath & gstrProjectName & "\" & gstrProjectData
-    mdiMain.Caption = App.Title & " - [" & strProjectName & "]"
-    mdiMain.sbStatus.Panels(1).Text = Dir1.Path
+    With mdiMain
+        .Caption = App.Title & " - [" & strProjectName & "]"
+        .sbStatus.Panels(1).Text = strProjectPath 'Dir1.Path
+        .mnuFileManageProject.Enabled = True
+        .mnuFileMakeExe.Caption = "&Compile " & strProjectName & ".exe..."
+        .mnuFileMakeExeAndRun.Caption = "Compile and &Run " & strProjectName & ".exe..."
+        .mnuFileMakeExe.Enabled = True
+        .mnuFileMakeExeAndRun.Enabled = True
+    End With
     Unload Me
     Unload frmWindowProject
     With frmWindowProject
@@ -196,11 +197,5 @@ Private Sub OpenProject(ByVal strProjectPath As String, ByVal strProjectFile As 
         .Top = 0
         .Show
         '.RefreshTreeview
-    End With
-    With mdiMain
-        .mnuFileMakeExe.Caption = "&Compile " & gstrProjectName & ".exe..."
-        .mnuFileMakeExeAndRun.Caption = "Compile and &Run " & gstrProjectName & ".exe..."
-        .mnuFileMakeExe.Enabled = True
-        .mnuFileMakeExeAndRun.Enabled = True
     End With
 End Sub
