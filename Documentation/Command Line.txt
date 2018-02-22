@@ -23,7 +23,7 @@ Note: Commands are not case sensitive but parameters can be case sensitive. Take
    Create a new table Model_Name in Data.mdb
 
 6) VB GENERATE USER
-   Create Users table for login credentials
+   Create User table for login credentials
 
 Coming soon...
 
