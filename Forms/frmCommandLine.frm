@@ -356,6 +356,30 @@ Private Function CheckCommand(strValue As String) As Boolean
                                     Exit Function
                                 End If
                             End If
+                        Case "build" ' ignore parameters
+                            'If UBound(strCommand) > 1 Then
+                            '    CheckCommand = False
+                            '    Exit Function
+                            'End If
+                            CompileExe
+                            SetViewText "Build successfully!"
+                            ShowCommand strViewText
+                            CheckCommand = True
+                        Case "run" ' ignore parameters
+                            RunExe
+                            SetViewText "Running Application..."
+                            ShowCommand strViewText
+                            CheckCommand = True
+                        Case "start" ' build and run
+                            Dim strProjectExe As String
+                            strProjectExe = App.Path & "\" & gstrProjectFolder & "\" & gstrProjectName & "\" & gstrProjectName & ".exe"
+                            If Not FileExists(strProjectExe) Then
+                                CompileExe
+                            End If
+                            RunExe
+                            SetViewText "Application started!"
+                            ShowCommand strViewText
+                            CheckCommand = True
                         Case Else
                             CheckCommand = False
                             'mdiMain.sbStatus.Panels(1).Text = ""
@@ -371,7 +395,9 @@ Private Function CheckCommand(strValue As String) As Boolean
                 strHelp = vbCrLf & "[ Sample Commands ]"
                 strHelp = strHelp & vbCrLf & "vb create project_name" & vbTab & vbTab & "to create a new project"
                 strHelp = strHelp & vbCrLf & "vb open project_name" & vbTab & vbTab & "to open existing project (inside Projects folder)"
-                strHelp = strHelp & vbCrLf & "vb generate user" & vbTab & vbTab & vbTab & "to create a default User table"
+                strHelp = strHelp & vbCrLf & "vb build" & vbTab & vbTab & vbTab & vbTab & "to compile opened project into exe"
+                strHelp = strHelp & vbCrLf & "vb run" & vbTab & vbTab & vbTab & vbTab & "to run compiled exe"
+                strHelp = strHelp & vbCrLf & "vb generate user" & vbTab & vbTab & vbTab & "to create a default Users table"
                 strHelp = strHelp & vbCrLf & "vb generate model model_name" & vbTab & "to create a database with table name model_name"
                 'strHelp = strHelp & vbCrLf & "vb g m model_name" & vbTab & vbTab & vbTab & "same as 'vb generate model model_name'"
                 'strHelp = strHelp & vbCrLf & "vb list model" & vbTab & vbTab & vbTab & "list all models inside the database"
