@@ -93,7 +93,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-
 Dim strProjectName As String
 
 Private Sub cmdCancel_Click()
@@ -105,8 +104,21 @@ Private Sub cmdOpen_Click()
         MsgBox "Please select a project", vbInformation, "Open Project"
         Exit Sub
     End If
-    If SearchProject(Dir1.Path, File1.FileName, strProjectName) Then
+    'If SearchProject(Dir1.Path, File1.FileName, strProjectName) Then
+    '    If strProjectName <> "" Then
+    '        OpenProject Dir1.Path, File1.FileName, strProjectName
+    '        Unload Me
+    '    End If
+    'End If
+    If FileExists(Dir1.Path & "\" & File1.FileName) Then
+        ' Try get project name from vbp file
+        SearchTextFile Dir1.Path & "\" & File1.FileName, "Name=", strProjectName
         If strProjectName <> "" Then
+            ' Name="Demo"
+            strProjectName = Left(strProjectName, Len(strProjectName) - 1)  ' Trim right double quote
+            strProjectName = Right(strProjectName, Len(strProjectName) - 6)                       ' Trim left double quote and Name=
+            'strProjectName = Mid(strProjectName, 7, Len(strProjectName) - 7)
+            'Debug.Print strProjectName
             OpenProject Dir1.Path, File1.FileName, strProjectName
             Unload Me
         End If
@@ -118,9 +130,22 @@ Private Sub Dir1_Change()
 End Sub
 
 Private Sub File1_Click()
+    'If File1.FileName Like "*.vbp" Then
+    '    ' Search this project and path in database
+    '    If SearchProject(Dir1.Path, File1.FileName, strProjectName) Then
+    '        Label2.Caption = "Project Name: " & strProjectName
+    '    Else
+    '        Label2.Caption = "Project Not found"
+    '    End If
+    'End If
+    
     If File1.FileName Like "*.vbp" Then
-        ' Search this project and path in database
-        If SearchProject(Dir1.Path, File1.FileName, strProjectName) Then
+        SearchTextFile Dir1.Path & "\" & File1.FileName, "Name=", strProjectName
+        If strProjectName <> "" Then
+            strProjectName = Left(strProjectName, Len(strProjectName) - 1)  ' Trim right double quote
+            strProjectName = Right(strProjectName, Len(strProjectName) - 6)                      ' Trim left double quote and Name=
+            'strProjectName = Mid(strProjectName, 7, Len(strProjectName) - 7)
+            'Debug.Print strProjectName
             Label2.Caption = "Project Name: " & strProjectName
         Else
             Label2.Caption = "Project Not found"
@@ -132,46 +157,46 @@ Private Sub Form_Load()
     Dir1.Path = App.Path & "\Projects\"
 End Sub
 
-Private Function SearchProject(ByVal strProjectPath As String, ByVal strProjectFile As String, ByRef strProjectName As String) As Boolean
-    Dim DB As New OmlDatabase
-    Dim rst As ADODB.Recordset
-    With DB
-        .DataPath = gstrMasterDataPath & "\"
-        .DataFile = gstrMasterDataFile
-        '.DataPath = gstrProjectDataPath & "\"
-        '.DataFile = gstrProjectItemsFile
-        .OpenMdb
-        'SQL_SELECT
-        'SQL_FROM "Project"
-        SQL_SELECT_ALL "Project"
-        SQL_WHERE_Text "ProjectPath", strProjectPath
-        SQL_AND_Text "ProjectFile", strProjectFile
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            LogError "Error", "SearchProject/frmProjectOpen", .ErrorDesc
-            .CloseRS rst
-            .CloseMdb
-            SearchProject = False
-            Exit Function
-        End If
-        If rst Is Nothing Or rst.EOF Then
-            .CloseRS rst
-            .CloseMdb
-            SearchProject = False
-            Exit Function
-        End If
-        With rst
-            If Not .EOF Then
-                strProjectName = !ProjectName
-                SearchProject = True
-            Else
-                SearchProject = False
-            End If
-        End With
-        .CloseRS rst
-        .CloseMdb
-    End With
-End Function
+'Private Function SearchProject(ByVal strProjectPath As String, ByVal strProjectFile As String, ByRef strProjectName As String) As Boolean
+'    Dim DB As New OmlDatabase
+'    Dim rst As ADODB.Recordset
+'    With DB
+'        .DataPath = gstrMasterDataPath & "\"
+'        .DataFile = gstrMasterDataFile
+'        '.DataPath = gstrProjectDataPath & "\"
+'        '.DataFile = gstrProjectItemsFile
+'        .OpenMdb
+'        'SQL_SELECT
+'        'SQL_FROM "Project"
+'        SQL_SELECT_ALL "Project"
+'        SQL_WHERE_Text "ProjectPath", strProjectPath
+'        SQL_AND_Text "ProjectFile", strProjectFile
+'        Set rst = .OpenRs(gstrSQL)
+'        If .ErrorDesc <> "" Then
+'            LogError "Error", "SearchProject/frmProjectOpen", .ErrorDesc
+'            .CloseRs rst
+'            .CloseMdb
+'            SearchProject = False
+'            Exit Function
+'        End If
+'        If rst Is Nothing Or rst.EOF Then
+'            .CloseRs rst
+'            .CloseMdb
+'            SearchProject = False
+'            Exit Function
+'        End If
+'        With rst
+'            If Not .EOF Then
+'                strProjectName = !ProjectName
+'                SearchProject = True
+'            Else
+'                SearchProject = False
+'            End If
+'        End With
+'        .CloseRs rst
+'        .CloseMdb
+'    End With
+'End Function
 
 Private Sub OpenProject(ByVal strProjectPath As String, ByVal strProjectFile As String, ByVal strProjectName As String)
     gstrProjectName = strProjectName
