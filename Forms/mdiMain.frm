@@ -129,23 +129,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-    Private Declare Function OpenProcess Lib "kernel32" (ByVal dwDesiredAccess As Long, ByVal bInheritHandle As Long, ByVal dwProcessId As Long) As Long
-    Private Declare Function WaitForSingleObject Lib "kernel32" (ByVal hHandle As Long, ByVal dwMilliseconds As Long) As Long
-    Private Declare Function CloseHandle Lib "kernel32" (ByVal hObject As Long) As Long
-    
-    Private Const SYNCHRONIZE = &H100000
-    Private Const INFINITE = -1&
-
-    ' Const COMPILER = "C:\Program Files\Microsoft Visual Studio\Vb98\Vb6.exe"
-    Private Const COMPILER = "C:\Program Files (x86)\Microsoft Visual Studio\VB98\VB6.exe"
-    'Const PROJECT_NAME = "Target"
-    
-    Private strProjectPath As String
-    Private strProjectVbp As String
-    Private strProjectExe As String
-    Private cmd As String
-
-' Check function mnuRunStart_Click()
 
 Private Sub MDIForm_Load()
     'strProjectPath = App.Path & "\Projects\"
@@ -203,22 +186,18 @@ Private Sub mnuOptions_Click()
 End Sub
 
 Private Sub mnuRun_Click()
-    If strProjectExe = "" Then
+    Dim strProjectExe As String
+    
+    strProjectExe = App.Path & "\" & gstrProjectFolder & "\" & gstrProjectName & "\" & gstrProjectName & ".exe"
+    If FileExists(strProjectExe) Then
+        mnuRunStart.Enabled = True
+    Else
         mnuRunStart.Enabled = False
     End If
 End Sub
 
 Private Sub mnuRunStart_Click()
-    If strProjectExe = "" Then
-        'With frmLogin ' frmLiveApp
-        '    .Show
-        '    .ZOrder 0
-        'End With
-        MsgBox "Executable file not set!", vbExclamation, "Error"
-    Else
-        'strProjectExe = App.Path & "\Projects\Test\Test.exe"
-        RunExe
-    End If
+    RunExe
 End Sub
 
 Private Sub mnuViewProjectExplorer_Click()
@@ -252,62 +231,6 @@ Private Sub InitGlobalVariables()
     gstrMasterDataPath = gstrMasterPath & "\" & gstrMasterData
     gstrMasterDataFile = "Projects.mdb"
     gstrMasterDataPassword = ""
-End Sub
-
-' Source: http://www.vb-helper.com/howto_make_and_run.html
-' Start the indicated program and wait for it
-' to finish, hiding while we wait.
-Private Sub ShellAndWait(ByVal program_name As String)
-    Dim process_id As Long
-    Dim process_handle As Long
-' Start the program.
-On Error GoTo ShellError
-    process_id = Shell(program_name, vbNormalFocus)
-    On Error GoTo 0
-
-    ' Hide.
-    'Me.Visible = False
-    DoEvents
-
-    ' Wait for the program to finish.
-    ' Get the process handle.
-    process_handle = OpenProcess(SYNCHRONIZE, 0, process_id)
-    If process_handle <> 0 Then
-        WaitForSingleObject process_handle, INFINITE
-        CloseHandle process_handle
-    End If
-
-    ' Reappear.
-    'Me.Visible = True
-    
-    Exit Sub
-ShellError:
-    MsgBox "Error running '" & program_name & "'" & vbCrLf & Err.Description
-End Sub
-
-Private Sub CompileExe()
-    If gstrProjectName = "" Or gstrProjectFile = "" Then Exit Sub
-    strProjectPath = App.Path & "\" & gstrProjectFolder
-    ' Get the project file name.
-    'If Right$(strProjectPath, 1) <> "\" Then strProjectPath = strProjectPath & "\"
-    strProjectVbp = strProjectPath & "\" & gstrProjectName & "\" & gstrProjectName & ".vbp" ' gstrProjectFile
-    strProjectExe = strProjectPath & "\" & gstrProjectName & "\" & gstrProjectName & ".exe"
-    
-    If Not FileExists(strProjectVbp) Then Exit Sub
-    ' Compose the compile command.
-    cmd = """" & COMPILER & """ /MAKE """ & strProjectVbp & """"
-
-    ' Shell this command and wait for it to finish.
-    ShellAndWait cmd
-End Sub
-
-Private Sub RunExe()
-    If strProjectExe = "" Then Exit Sub
-    If Not FileExists(strProjectExe) Then Exit Sub
-    ' Execute the newly compiled program.
-    cmd = """" & strProjectExe & """"
-    'ShellAndWait cmd
-    Shell cmd, vbNormalFocus
 End Sub
 
 'Private Sub mnuViewProjectUserAdmin_Click()
