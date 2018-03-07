@@ -1,8 +1,8 @@
 Attribute VB_Name = "modTextFile"
-' Version : 2.0
+' Version : 2.1
 ' Author: Poon Yip Hoon
 ' Created On   : Unknown
-' Modified On  : 15 Oct 2017
+' Modified On  : 07 Mar 2018
 ' Descriptions : Text file input/output functions
 ' References:
 '
@@ -69,4 +69,26 @@ On Error GoTo RE
     Exit Sub
 RE:
     LogError "Error", "ReadTextFile(" & pstrFileName & ", " & pintLineNo & ")", Err.Description
+End Sub
+
+Public Sub SearchTextFile(ByVal pstrFileName As String, ByVal pstrFindText As String, ByRef pstrOutput As String)
+Dim FF As Integer
+Dim strRead As String
+Dim intLen As Integer
+On Error GoTo RE
+    FF = FreeFile
+    intLen = Len(pstrFindText)
+    Open pstrFileName For Input As #FF
+    Do Until EOF(FF) = True
+        Input #FF, strRead
+        If Left(strRead, intLen) = pstrFindText Then
+            pstrOutput = strRead
+            Close
+            Exit Sub
+        End If
+    Loop
+    Close
+    Exit Sub
+RE:
+    LogError "Error", "SearchTextFile(" & pstrFileName & ", " & pstrFindText & ")", Err.Description
 End Sub
