@@ -12,8 +12,9 @@ Option Explicit
     
     Private Const SYNCHRONIZE = &H100000
     Private Const INFINITE = -1&
-    Private Const COMPILER = "C:\Program Files (x86)\Microsoft Visual Studio\VB98\VB6.exe"
-
+    'Private Const COMPILER = "C:\Program Files\Microsoft Visual Studio\VB98\VB6.exe" ' Windows XP (32bit)
+    Private Const COMPILER = "C:\Program Files (x86)\Microsoft Visual Studio\VB98\VB6.exe" ' Windows 7 (64bit)
+            
     Private i As Integer
     'Private strProjectType As String
     'Private strProjectFolder As String
