@@ -17,3 +17,8 @@ VB6 project source code can be generated on the fly. With the addition of a "fak
 
 
 The above commands create a vb6 project inside _Projects_ folder name _Customer_ with an empty form and a folder name _Data_ with a MS Access database name _Data.mdb_ with a _Customer_ table.
+
+**Preview:**
+![Compile and Run](https://github.com/pyhoon/omelette/blob/master/Source/Preview/Omelette_Compile_Run.png)
+
+For more screenshots, check Omelette [Wiki](https://github.com/pyhoon/omelette/blob/master/Wiki) page.
