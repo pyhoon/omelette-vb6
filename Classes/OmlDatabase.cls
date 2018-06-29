@@ -18,7 +18,7 @@ Attribute VB_Ext_KEY = "Top_Level" ,"Yes"
 '**************************************************************************
 ' Version: 1.0.0.0
 ' Created on: 01 Feb 2018
-' Updated on: 08 Feb 2018
+' Updated on: 27 Jun 2018
 ' Created by: Aeric Poon Yip Hoon
 ' Description: A high level API written for MS Visual Basic 6.0
 '**************************************************************************
