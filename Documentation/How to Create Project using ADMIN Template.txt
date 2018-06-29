@@ -1,0 +1,24 @@
+How to Create a Project using ADMIN Template
+============================================
+
+1. Run 'Omelette.vbp' using MS Visual Basic 6.0 (VB6)
+
+2. Click 'New' toolbar button / click menu 'File -> New Project' / press keyboard Ctrl + N to open the 'New Project' dialog.
+
+3. Double-click on the Admin icon / select (highlight) the icon then click 'OK' button.
+
+4. Enter your preferred project name, e.g. 'Admin' and press 'Enter' / click on 'OK' button
+
+5. You will see a dialog show message "Project created successfully". Press 'Enter' / click on 'OK' button.
+
+6. The project will be loaded in Omelette.
+
+7. Press Ctrl + F8 / click on menu 'File -> Compile and Run Admin.exe...'
+
+8. The application is compiled and show a startup form for you to create an Admin account.
+
+9. Enter all the information and click 'Submit' button. Once your account is saved, close the form.
+
+10. Run the application again and you can log in using your Admin account.
+
+For any questions or issue opening the project, please contact me at yiphoon@yahoo.com Thanks!
