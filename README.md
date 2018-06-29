@@ -21,4 +21,4 @@ The above commands create a vb6 project inside _Projects_ folder name _Customer_
 **Preview:**
 ![Compile and Run](https://github.com/pyhoon/omelette/blob/master/Source/Preview/Omelette_Compile_Run.png)
 
-For more screenshots, check Omelette [Wiki](https://github.com/pyhoon/omelette/blob/master/Wiki) page.
+For more screenshots, check Omelette [Wiki](https://github.com/pyhoon/omelette/wiki) page.
