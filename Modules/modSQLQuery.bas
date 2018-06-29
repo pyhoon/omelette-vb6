@@ -3,6 +3,7 @@ Attribute VB_Name = "modSQLQuery"
 ' Author: Poon Yip Hoon
 ' Created on: 26 Aug 2017
 ' Modified on: 22 Feb 2018
+' Modified on: 05 Jun 2018
 ' Descriptions: Commonly use database query for CRUD
 ' Dependencies: modDatabase
 
@@ -72,7 +73,12 @@ Public Sub SQL_WHERE_Integer(strField As String, intNumber As Integer)
 End Sub
 
 Public Sub SQL_WHERE_Boolean(strField As String, blnBoolean As Boolean)
-    gstrSQL = gstrSQL & " WHERE " & strField & " = " & blnBoolean
+    'gstrSQL = gstrSQL & " WHERE " & strField & " = " & blnBoolean
+    If blnBoolean Then
+        gstrSQL = gstrSQL & " WHERE " & strField & " = Yes"
+    Else
+        gstrSQL = gstrSQL & " WHERE " & strField & " = No"
+    End If
 End Sub
 
 Public Sub SQL_WHERE_BETWEEN(strField As String, strLeftValue As String, strRightValue As String)
@@ -122,6 +128,14 @@ Public Sub SQL_SELECT_TOP(strField As String, strTable As String, Optional intTo
     gstrSQL = "SELECT TOP " & intTop & " " & strField & " FROM " & strTable
 End Sub
 
+Public Sub SQL_SELECT_ID(strTable As String, Optional intTop As Integer = 1)
+    If intTop > 0 Then
+        gstrSQL = "SELECT TOP " & intTop & " ID FROM " & strTable
+    Else
+        gstrSQL = "SELECT ID FROM " & strTable
+    End If
+End Sub
+
 Public Sub SQL_FROM(strTable As String)
     gstrSQL = gstrSQL & " FROM " & strTable
 End Sub
@@ -142,6 +156,10 @@ Public Sub SQL_DELETE(strTable As String)
     gstrSQL = "DELETE FROM " & strTable
 End Sub
 
+Public Sub SQL_DROP(strTable As String)
+    gstrSQL = "DROP TABLE [" & strTable & "]"
+End Sub
+
 ' References:
 ' http://allenbrowne.com/ser-49.html
 ' https://docs.microsoft.com/en-us/sql/odbc/microsoft/microsoft-access-data-types
@@ -153,7 +171,8 @@ Public Sub SQL_CREATE(strTable As String, Optional strPrefix As String = "")
 End Sub
 
 Public Sub SQL_COLUMN_ID(Optional strColumnName As String = "ID", Optional blnPrimaryKey As Boolean = True, Optional blnAutoIncrement As Boolean = True, Optional blnEndComma As Boolean = True)
-    gstrSQL = gstrSQL & "[" & strColumnName & "]"
+    'gstrSQL = gstrSQL & "[" & strColumnName & "]"
+    gstrSQL = gstrSQL & strColumnName
     If blnAutoIncrement Then gstrSQL = gstrSQL & " AUTOINCREMENT"
     If blnPrimaryKey Then gstrSQL = gstrSQL & " PRIMARY KEY"
     If blnEndComma = True Then gstrSQL = gstrSQL & "," 'gstrSQL = gstrSQL & ","
