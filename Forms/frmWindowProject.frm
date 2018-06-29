@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Begin VB.Form frmWindowProject 
    BorderStyle     =   5  'Sizable ToolWindow
    Caption         =   "Project"
@@ -27,7 +27,7 @@ Begin VB.Form frmWindowProject
       UseMaskColor    =   0   'False
       _Version        =   393216
       BeginProperty Images {2C247F25-8591-11D1-B16A-00C0F0283628} 
-         NumListImages   =   4
+         NumListImages   =   6
          BeginProperty ListImage1 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmWindowProject.frx":000C
             Key             =   ""
@@ -42,6 +42,14 @@ Begin VB.Form frmWindowProject
          EndProperty
          BeginProperty ListImage4 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "frmWindowProject.frx":7FBA
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage5 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "frmWindowProject.frx":8E7C
+            Key             =   ""
+         EndProperty
+         BeginProperty ListImage6 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "frmWindowProject.frx":9B56
             Key             =   ""
          EndProperty
       EndProperty
@@ -86,8 +94,6 @@ On Error GoTo Catch
         .Nodes.Clear
     End With
     With DB
-        '.DataPath = gstrMasterDataPath & "\"
-        '.DataFile = gstrMasterDataFile
         .DataPath = gstrProjectDataPath & "\"
         .DataFile = gstrProjectItemsFile
         .OpenMdb
@@ -97,7 +103,7 @@ On Error GoTo Catch
         If .ErrorDesc <> "" Then
             'MsgBox "Error: " & .ErrorDesc, vbExclamation, "ReadItemsData"
             LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
-            .CloseRS rst
+            .CloseRs rst
             .CloseMdb
             Exit Sub
         End If
@@ -111,14 +117,14 @@ On Error GoTo Catch
                 nod.Expanded = True
             End With
         End If
-        .CloseRS rst
+        .CloseRs rst
             
         SQL_SELECT_ALL "Forms"
         Set rst = .OpenRs(gstrSQL)
         If .ErrorDesc <> "" Then
             'MsgBox "Error: " & .ErrorDesc, vbExclamation, "ReadItemsData"
             LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
-            .CloseRS rst
+            .CloseRs rst
             .CloseMdb
             Exit Sub
         End If
@@ -138,14 +144,14 @@ On Error GoTo Catch
                 Wend
             End With
         End If
-        .CloseRS rst
+        .CloseRs rst
         
         SQL_SELECT_ALL "Modules"
         Set rst = .OpenRs(gstrSQL)
         If .ErrorDesc <> "" Then
             'MsgBox "Error: " & .ErrorDesc, vbExclamation, "ReadItemsData"
             LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
-            .CloseRS rst
+            .CloseRs rst
             .CloseMdb
             Exit Sub
         End If
@@ -165,7 +171,34 @@ On Error GoTo Catch
                 Wend
             End With
         End If
-        .CloseRS rst
+        .CloseRs rst
+        
+        SQL_SELECT_ALL "Class"
+        Set rst = .OpenRs(gstrSQL)
+        If .ErrorDesc <> "" Then
+            LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
+            .CloseRs rst
+            .CloseMdb
+            Exit Sub
+        End If
+        If Not (rst Is Nothing Or rst.EOF) Then
+            strKey = "Class"
+            strLabel = "Class"
+            Set nod = tvwFiles.Nodes.Add("G1", tvwChild, strKey, strLabel, 2)
+            nod.Expanded = True
+            With rst
+                '.MoveFirst
+                While Not .EOF
+                    i = i + 1
+                    strKey = "Item" & i
+                    strLabel = !ClassName & " (" & !ClassFile & ")"
+                    Set nod = tvwFiles.Nodes.Add("Class", tvwChild, strKey, strLabel, 5)
+                    .MoveNext
+                Wend
+            End With
+        End If
+        .CloseRs rst
+        
         .CloseMdb
     End With
     tvwFiles.Enabled = True
