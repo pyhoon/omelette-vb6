@@ -65,15 +65,16 @@ Begin VB.Form frmProjectOpen
    Begin VB.CommandButton cmdCancel 
       Caption         =   "Cancel"
       Height          =   375
-      Left            =   3240
+      Left            =   4680
       TabIndex        =   1
       Top             =   3240
       Width           =   1215
    End
    Begin VB.CommandButton cmdOpen 
       Caption         =   "Open"
+      Default         =   -1  'True
       Height          =   375
-      Left            =   4680
+      Left            =   3240
       TabIndex        =   0
       Top             =   3240
       Width           =   1215
@@ -100,28 +101,13 @@ Private Sub cmdCancel_Click()
 End Sub
 
 Private Sub cmdOpen_Click()
-    If Not File1.FileName Like "*.vbp" Then ' strProjectName = "" Then
+    If Not File1.FileName Like "*.vbp" Then
         MsgBox "Please select a project", vbInformation, "Open Project"
         Exit Sub
     End If
-    'If SearchProject(Dir1.Path, File1.FileName, strProjectName) Then
-    '    If strProjectName <> "" Then
-    '        OpenProject Dir1.Path, File1.FileName, strProjectName
-    '        Unload Me
-    '    End If
-    'End If
-    If FileExists(Dir1.Path & "\" & File1.FileName) Then
-        ' Try get project name from vbp file
-        SearchTextFile Dir1.Path & "\" & File1.FileName, "Name=", strProjectName
-        If strProjectName <> "" Then
-            ' Name="Demo"
-            strProjectName = Left(strProjectName, Len(strProjectName) - 1)  ' Trim right double quote
-            strProjectName = Right(strProjectName, Len(strProjectName) - 6)                       ' Trim left double quote and Name=
-            'strProjectName = Mid(strProjectName, 7, Len(strProjectName) - 7)
-            'Debug.Print strProjectName
-            OpenProject Dir1.Path, File1.FileName, strProjectName
-            Unload Me
-        End If
+    If FileExists(File1.Path & "\" & File1.FileName) Then
+        OpenProject strProjectName, File1.Path, File1.FileName
+        Unload Me
     End If
 End Sub
 
@@ -129,26 +115,20 @@ Private Sub Dir1_Change()
     File1.Path = Dir1.Path
 End Sub
 
+Private Sub Dir1_Click()
+    File1.Path = Dir1.List(Dir1.ListIndex)
+End Sub
+
 Private Sub File1_Click()
-    'If File1.FileName Like "*.vbp" Then
-    '    ' Search this project and path in database
-    '    If SearchProject(Dir1.Path, File1.FileName, strProjectName) Then
-    '        Label2.Caption = "Project Name: " & strProjectName
-    '    Else
-    '        Label2.Caption = "Project Not found"
-    '    End If
-    'End If
-    
     If File1.FileName Like "*.vbp" Then
-        SearchTextFile Dir1.Path & "\" & File1.FileName, "Name=", strProjectName
+        ' Try get project name from vbp file
+        SearchTextFile File1.Path & "\" & File1.FileName, "Name=", strProjectName
         If strProjectName <> "" Then
-            strProjectName = Left(strProjectName, Len(strProjectName) - 1)  ' Trim right double quote
-            strProjectName = Right(strProjectName, Len(strProjectName) - 6)                      ' Trim left double quote and Name=
-            'strProjectName = Mid(strProjectName, 7, Len(strProjectName) - 7)
-            'Debug.Print strProjectName
+            strProjectName = Replace(strProjectName, "Name=", "")   ' Remove Name=
+            strProjectName = Replace(strProjectName, """", "")      ' Remove double quotes
             Label2.Caption = "Project Name: " & strProjectName
         Else
-            Label2.Caption = "Project Not found"
+            Label2.Caption = "" '"Project Not found"
         End If
     End If
 End Sub
@@ -157,70 +137,36 @@ Private Sub Form_Load()
     Dir1.Path = App.Path & "\Projects\"
 End Sub
 
-'Private Function SearchProject(ByVal strProjectPath As String, ByVal strProjectFile As String, ByRef strProjectName As String) As Boolean
-'    Dim DB As New OmlDatabase
-'    Dim rst As ADODB.Recordset
-'    With DB
-'        .DataPath = gstrMasterDataPath & "\"
-'        .DataFile = gstrMasterDataFile
-'        '.DataPath = gstrProjectDataPath & "\"
-'        '.DataFile = gstrProjectItemsFile
-'        .OpenMdb
-'        'SQL_SELECT
-'        'SQL_FROM "Project"
-'        SQL_SELECT_ALL "Project"
-'        SQL_WHERE_Text "ProjectPath", strProjectPath
-'        SQL_AND_Text "ProjectFile", strProjectFile
-'        Set rst = .OpenRs(gstrSQL)
-'        If .ErrorDesc <> "" Then
-'            LogError "Error", "SearchProject/frmProjectOpen", .ErrorDesc
-'            .CloseRs rst
-'            .CloseMdb
-'            SearchProject = False
-'            Exit Function
-'        End If
-'        If rst Is Nothing Or rst.EOF Then
-'            .CloseRs rst
-'            .CloseMdb
-'            SearchProject = False
-'            Exit Function
-'        End If
-'        With rst
-'            If Not .EOF Then
-'                strProjectName = !ProjectName
-'                SearchProject = True
-'            Else
-'                SearchProject = False
-'            End If
-'        End With
-'        .CloseRs rst
-'        .CloseMdb
-'    End With
-'End Function
-
-Private Sub OpenProject(ByVal strProjectPath As String, ByVal strProjectFile As String, ByVal strProjectName As String)
+Private Sub OpenProject(ByVal strProjectName As String, _
+                        ByVal strProjectPath As String, _
+                        ByVal strProjectFile As String)
     gstrProjectName = strProjectName
     gstrProjectPath = strProjectPath
     gstrProjectFile = strProjectFile
-    gstrProjectDataPath = strProjectPath & "\" & gstrProjectData '?
-    'gstrProjectDataPath = gstrProjectPath & gstrProjectName & "\" & gstrProjectData
+    gstrProjectDataPath = gstrProjectPath & "\" & gstrProjectData
     With mdiMain
         .Caption = App.Title & " - [" & strProjectName & "]"
-        .sbStatus.Panels(1).Text = strProjectPath 'Dir1.Path
+        .sbStatus.Panels(1).Text = gstrProjectPath
         .mnuFileManageProject.Enabled = True
         .mnuFileMakeExe.Caption = "&Compile " & strProjectName & ".exe..."
         .mnuFileMakeExeAndRun.Caption = "Compile and &Run " & strProjectName & ".exe..."
         .mnuFileMakeExe.Enabled = True
         .mnuFileMakeExeAndRun.Enabled = True
+        With .tbrMain
+            .Buttons(3).Enabled = True
+            .Buttons(4).Enabled = True
+            .Buttons(5).Enabled = True
+            .Buttons(6).Enabled = True
+        End With
     End With
     Unload Me
-    Unload frmWindowProject
+    'Unload frmWindowProject
     With frmWindowProject
         .Width = 4000
         .Height = 4000
         .Left = mdiMain.Width - .Width - 300
         .Top = 0
         .Show
-        '.RefreshTreeview
+        .ReadItemsData
     End With
 End Sub
