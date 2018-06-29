@@ -11,8 +11,6 @@ VB6 project source code can be generated on the fly. With the addition of a "fak
 
 `vb create Customer`
 
-`vb open Customer`
-
 `vb generate model Customer`
 
 
