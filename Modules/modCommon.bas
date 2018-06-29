@@ -1,7 +1,7 @@
 Attribute VB_Name = "modCommon"
-' Version : 2.2
+' Version : 2.3
 ' Author: Poon Yip Hoon
-' Modified On : 26/08/2017
+' Modified On : 29/06/2018
 ' Descriptions : Commonly use functions
 Option Explicit
 Public Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" (ByVal hwnd As Long, ByVal lpOperation As String, ByVal lpFile As String, ByVal lpParameters As String, ByVal lpDirectory As String, ByVal nShowCmd As Long) As Long
@@ -195,7 +195,7 @@ End Function
 
 Public Function FormatItem(strItemID As String, strItemName As String, Optional blnEnable As Boolean = True) As String
     Dim str As String
-    str = "(X)" ' "Ø"
+    str = "(X)" ' "Ã˜"
     If blnEnable = True Then
         FormatItem = strItemID & vbTab & strItemName
     Else
@@ -278,6 +278,23 @@ On Error Resume Next
         FileExists = True
     End If
 End Function
+
+Public Sub CreateDirectory(pstrProjectPath As String)
+    On Error Resume Next
+    If Dir(pstrProjectPath, vbDirectory) <> "" Then
+    
+    Else
+        MkDir pstrProjectPath
+    End If
+End Sub
+
+Public Sub SetDefaultValue(strVariable As String, strDefault As String, Optional blnTrim As Boolean = False)
+    If blnTrim Then
+        If Trim(strVariable) = "" Then strVariable = strDefault
+    Else
+        If strVariable = "" Then strVariable = strDefault
+    End If
+End Sub
 
 Public Sub ResetControls(frm As Form)
     Dim ctl As Control
