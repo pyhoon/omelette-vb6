@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Begin VB.MDIForm mdiMain 
    BackColor       =   &H8000000C&
    Caption         =   "Omelette"
@@ -9,6 +9,98 @@ Begin VB.MDIForm mdiMain
    ClientWidth     =   13845
    LinkTopic       =   "MDIForm1"
    StartUpPosition =   1  'CenterOwner
+   Begin MSComctlLib.Toolbar tbrMain 
+      Align           =   1  'Align Top
+      Height          =   330
+      Left            =   0
+      TabIndex        =   1
+      Top             =   0
+      Width           =   13845
+      _ExtentX        =   24421
+      _ExtentY        =   582
+      ButtonWidth     =   609
+      ButtonHeight    =   582
+      Style           =   1
+      ImageList       =   "istIcons"
+      _Version        =   393216
+      BeginProperty Buttons {66833FE8-8583-11D1-B16A-00C0F0283628} 
+         NumButtons      =   7
+         BeginProperty Button1 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Object.ToolTipText     =   "New"
+            ImageIndex      =   1
+         EndProperty
+         BeginProperty Button2 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Object.ToolTipText     =   "Open"
+            ImageIndex      =   2
+         EndProperty
+         BeginProperty Button3 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Enabled         =   0   'False
+            Object.ToolTipText     =   "Open project directory"
+            ImageIndex      =   3
+         EndProperty
+         BeginProperty Button4 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Enabled         =   0   'False
+            Object.ToolTipText     =   "Open project in Visual Basic"
+            ImageIndex      =   4
+         EndProperty
+         BeginProperty Button5 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Enabled         =   0   'False
+            Object.ToolTipText     =   "Explorer"
+            ImageIndex      =   5
+         EndProperty
+         BeginProperty Button6 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Enabled         =   0   'False
+            Object.ToolTipText     =   "Properties"
+            ImageIndex      =   6
+         EndProperty
+         BeginProperty Button7 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Object.ToolTipText     =   "Command"
+            ImageIndex      =   7
+         EndProperty
+      EndProperty
+      Begin MSComctlLib.ImageList istIcons 
+         Left            =   12600
+         Top             =   0
+         _ExtentX        =   1005
+         _ExtentY        =   1005
+         BackColor       =   -2147483643
+         ImageWidth      =   16
+         ImageHeight     =   16
+         MaskColor       =   12632256
+         _Version        =   393216
+         BeginProperty Images {2C247F25-8591-11D1-B16A-00C0F0283628} 
+            NumListImages   =   7
+            BeginProperty ListImage1 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+               Picture         =   "mdiMain.frx":0000
+               Key             =   ""
+            EndProperty
+            BeginProperty ListImage2 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+               Picture         =   "mdiMain.frx":0542
+               Key             =   ""
+            EndProperty
+            BeginProperty ListImage3 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+               Picture         =   "mdiMain.frx":0A84
+               Key             =   ""
+            EndProperty
+            BeginProperty ListImage4 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+               Picture         =   "mdiMain.frx":0B96
+               Key             =   ""
+            EndProperty
+            BeginProperty ListImage5 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+               Picture         =   "mdiMain.frx":0CA8
+               Key             =   ""
+            EndProperty
+            BeginProperty ListImage6 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+               Picture         =   "mdiMain.frx":0DBA
+               Key             =   ""
+            EndProperty
+            BeginProperty ListImage7 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+               Picture         =   "mdiMain.frx":0ECC
+               Key             =   ""
+            EndProperty
+         EndProperty
+      End
+   End
    Begin MSComctlLib.StatusBar sbStatus 
       Align           =   2  'Align Bottom
       Height          =   255
@@ -60,6 +152,7 @@ Begin VB.MDIForm mdiMain
    End
    Begin VB.Menu mnuEdit 
       Caption         =   "&Edit"
+      Visible         =   0   'False
    End
    Begin VB.Menu mnuView 
       Caption         =   "&View"
@@ -70,18 +163,31 @@ Begin VB.MDIForm mdiMain
    End
    Begin VB.Menu mnuProject 
       Caption         =   "&Project"
+      Begin VB.Menu mnuAddForm 
+         Caption         =   "Add &Form"
+      End
+      Begin VB.Menu mnuAddModule 
+         Caption         =   "Add &Module"
+      End
+      Begin VB.Menu mnuAddClass 
+         Caption         =   "Add &Class"
+      End
+      Begin VB.Menu Separator3 
+         Caption         =   "-"
+      End
       Begin VB.Menu mnuFileManageProject 
-         Caption         =   "&Manage Project"
+         Caption         =   "Manage &Project"
          Enabled         =   0   'False
-         Shortcut        =   ^M
       End
    End
    Begin VB.Menu mnuFormat 
       Caption         =   "F&ormat"
+      Visible         =   0   'False
    End
    Begin VB.Menu mnuDebug 
       Caption         =   "&Debug"
       Enabled         =   0   'False
+      Visible         =   0   'False
    End
    Begin VB.Menu mnuRun 
       Caption         =   "&Run"
@@ -92,19 +198,25 @@ Begin VB.MDIForm mdiMain
    End
    Begin VB.Menu mnuQuery 
       Caption         =   "Q&uery"
+      Visible         =   0   'False
    End
    Begin VB.Menu mnuDiagram 
       Caption         =   "D&iagram"
+      Visible         =   0   'False
    End
    Begin VB.Menu mnuAddIns 
       Caption         =   "&Add-Ins"
+      Visible         =   0   'False
    End
    Begin VB.Menu mnuTools 
       Caption         =   "&Tools"
       Begin VB.Menu mnuOptions 
          Caption         =   "&Options..."
       End
-      Begin VB.Menu Separator3 
+      Begin VB.Menu mnuImportFileToTemplate 
+         Caption         =   "&Import File to Template..."
+      End
+      Begin VB.Menu Separator4 
          Caption         =   "-"
       End
       Begin VB.Menu mnuCommandLine 
@@ -129,6 +241,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+'Private Const COMPILER = "C:\Program Files (x86)\Microsoft Visual Studio\VB98\VB6.exe"
 
 Private Sub MDIForm_Load()
     'strProjectPath = App.Path & "\Projects\"
@@ -141,6 +254,14 @@ Private Sub mnuAbout_Click()
     "Version " & App.Major & "." & App.Minor & " Build " & App.Revision & vbCrLf & vbCrLf & _
     "Copyright" & Chr(169) & " 2017-2018 " & App.CompanyName & "." & vbCrLf & _
     "All rights reserved.", vbInformation, App.Title
+End Sub
+
+Private Sub mnuAddForm_Click()
+    ' Add Form
+    
+    ' 1 Check if form exist
+    
+    ' Update Items
 End Sub
 
 Private Sub mnuCommandLine_Click()
@@ -181,13 +302,18 @@ Private Sub mnuFileOpenProject_Click()
     End With
 End Sub
 
+Private Sub mnuImportFileToTemplate_Click()
+    With frmImportTemplate
+        .Show vbModal
+    End With
+End Sub
+
 Private Sub mnuOptions_Click()
     'frmOptions.Show
 End Sub
 
 Private Sub mnuRun_Click()
     Dim strProjectExe As String
-    
     strProjectExe = App.Path & "\" & gstrProjectFolder & "\" & gstrProjectName & "\" & gstrProjectName & ".exe"
     If FileExists(strProjectExe) Then
         mnuRunStart.Enabled = True
@@ -212,21 +338,22 @@ End Sub
 
 ' Initialize global variables
 Private Sub InitGlobalVariables()
-    gstrProjectName = ""
     'gstrProjectFile = ""
-    
-    gstrProjectFolder = "Projects"
-    gstrProjectPath = App.Path & "\" & gstrProjectFolder
+    gstrProjectName = ""
+    gstrProjectFolder = "Projects" ' use gstrMasterProject
+    gstrProjectPath = "" ' App.Path & "\" & gstrProjectFolder
     gstrProjectData = "Storage"
-    gstrProjectDataPath = "" ' gstrProjectPath & "\" & gstrProjectName & "\" & gstrProjectData
+    gstrProjectDataPath = ""
     gstrProjectDataFile = "Data.mdb"
     gstrProjectDataPassword = ""
     gstrProjectItemsFile = "Items.mdb"
     gstrProjectItemsPassword = ""
-    
-    'gstrMasterFolder = "\"
-    gstrMasterPath = App.Path '& gstrMasterFolder
-    'gstrMasterFolder = gstrMasterPath & "\" & gstrMasterFolder
+    'gstrProjectForms = "Forms"
+    gstrProjectModules = "Modules"
+    gstrProjectClasses = "Classes"
+
+    gstrMasterPath = App.Path
+    'gstrMasterProject = "Projects" ' should use this
     gstrMasterData = "Databases"
     gstrMasterDataPath = gstrMasterPath & "\" & gstrMasterData
     gstrMasterDataFile = "Projects.mdb"
@@ -239,3 +366,27 @@ End Sub
 '        .ZOrder 0
 '    End With
 'End Sub
+
+Private Sub tbrMain_ButtonClick(ByVal Button As MSComctlLib.Button)
+    Select Case Button.Index
+        Case 1 ' NEW
+            mnuFileNewProject_Click
+        Case 2 ' OPEN
+            mnuFileOpenProject_Click
+        Case 3 ' PATH
+            'mnuRunStart_Click
+            If gstrProjectPath <> "" Then
+                Shell "Explorer " & gstrProjectPath
+            End If
+        Case 4 ' PROJECT
+            If gstrProjectPath <> "" Then
+                Shell COMPILER & " " & gstrProjectPath & "\" & gstrProjectName & ".vbp", vbNormalFocus
+            End If
+        Case 5
+            mnuViewProjectExplorer_Click
+        Case 6
+            mnuFileManageProject_Click
+        Case 7
+            mnuCommandLine_Click
+    End Select
+End Sub
