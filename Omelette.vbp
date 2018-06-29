@@ -1,8 +1,9 @@
 Type=Exe
 Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#C:\Windows\SysWOW64\stdole2.tlb#OLE Automation
-Reference=*\G{B691E011-1797-432E-907A-4D8C69339129}#6.1#0#C:\Program Files (x86)\Common Files\System\ado\msado15.dll#Microsoft ActiveX Data Objects 6.1 Library
-Reference=*\G{00000600-0000-0010-8000-00AA006D2EA4}#6.0#0#C:\Program Files (x86)\Common Files\System\ado\msadox.dll#Microsoft ADO Ext. 6.0 for DDL and Security
-Object={831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0; MSCOMCTL.OCX
+Reference=*\G{2A75196C-D9EB-4129-B803-931327F72D5C}#2.8#0#C:\Program Files (x86)\Common Files\System\ado\msado28.tlb#Microsoft ActiveX Data Objects 2.8 Library
+Reference=*\G{00000600-0000-0010-8000-00AA006D2EA4}#2.8#0#C:\Program Files (x86)\Common Files\System\ado\msadox28.tlb#Microsoft ADO Ext. 2.8 for DDL and Security
+Object={831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0; MSCOMCTL.OCX
+Object={F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0; COMDLG32.OCX
 Form=Forms\frmCommandLine.frm
 Form=Forms\frmProjectManage.frm
 Form=Forms\frmProjectNew.frm
@@ -20,6 +21,7 @@ Module=modSubMain; Modules\modSubMain.bas
 Module=modTextFile; Modules\modTextFile.bas
 Form=Forms\frmWindowProperties.frm
 Class=OmlDatabase; Classes\OmlDatabase.cls
+Form=Forms\frmFormImport.frm
 Startup="frmSplash"
 HelpFile=""
 Title="Omelette"
@@ -50,3 +52,6 @@ Unattended=0
 Retained=0
 ThreadPerObject=0
 MaxNumberOfThreads=1
+
+[MS Transaction Server]
+AutoRefresh=1
