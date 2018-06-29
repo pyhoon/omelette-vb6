@@ -16,14 +16,16 @@ Public gstrProjectDataPath As String
 Public gstrProjectDataPassword As String
 Public gstrProjectItemsFile As String
 Public gstrProjectItemsPassword As String
-    
+Public gstrProjectClasses As String
+Public gstrProjectModules As String
+
 'Public gstrDatabasePath As String
 'Public gstrDatabaseFile As String
 'Public gstrDatabasePassword As String
 
-Public gstrMasterFolder As String
+'Public gstrMasterFolder As String ' App.Path
 Public gstrMasterData As String
-Public gstrMasterPath As String
+Public gstrMasterPath As String ' App.Path
 Public gstrMasterDataFile As String
 Public gstrMasterDataPath As String
 Public gstrMasterDataPassword As String
@@ -34,3 +36,5 @@ Public gstrSQL As String
 Public gconMaster As ADODB.Connection
 Public gconProject As ADODB.Connection
 Public gconItem As ADODB.Connection
+
+Public gstrAppCompanyName As String
