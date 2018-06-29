@@ -20,6 +20,7 @@ On Error GoTo Catch
     If LCase(Right$(pstrFileName, 4)) <> ".txt" Then
         pstrFileName = pstrFileName & ".txt"
     End If
+    pstrFileName = App.Path & "\" & pstrFileName
     Open pstrFileName For Append As #1
     If pstrError = "" Then
         Print #1, NEWLINE & FormatDateAndTime(Now) & SEPARATOR & pstrNote
