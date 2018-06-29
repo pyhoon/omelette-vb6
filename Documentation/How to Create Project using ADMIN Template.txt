@@ -22,3 +22,5 @@ How to Create a Project using ADMIN Template
 10. Run the application again and you can log in using your Admin account.
 
 For any questions or issue opening the project, please contact me at yiphoon@yahoo.com Thanks!
+
+Note: To show the icons on dashboard, you need to install "Font Awesome 5 Free Solid" for desktop (Windows).
