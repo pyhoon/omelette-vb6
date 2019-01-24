@@ -457,7 +457,7 @@ Try:
         SetViewText "File (" & strProjectFile & ") created successful..."
         ShowCommand strViewText
         If Not AddItem("Project", strProjectName, strProjectPath, strProjectFile, "Storage", strProjectName) Then
-            SetViewText "Update (Project) table failed!"
+            SetViewText "Update (Project) table failed!" & " " & Err.Description
             ShowCommand strViewText
             CreateStandardProject = False
             Exit Function
