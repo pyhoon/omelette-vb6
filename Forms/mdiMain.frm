@@ -252,7 +252,7 @@ End Sub
 Private Sub mnuAbout_Click()
     MsgBox App.ProductName & vbCrLf & _
     "Version " & App.Major & "." & App.Minor & " Build " & App.Revision & vbCrLf & vbCrLf & _
-    "Copyright" & Chr(169) & " 2017-2018 " & App.CompanyName & "." & vbCrLf & _
+    "Copyright" & Chr(169) & " 2017-2019 " & App.CompanyName & "." & vbCrLf & _
     "All rights reserved.", vbInformation, App.Title
 End Sub
 
