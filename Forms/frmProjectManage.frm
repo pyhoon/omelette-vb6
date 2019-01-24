@@ -164,55 +164,54 @@ End Sub
 
 Public Sub PopulateData()
 Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
 Dim rst As ADODB.Recordset
 Try:
     If gstrProjectDataPath = "" Or gstrProjectItemsFile = "" Then Exit Sub
     On Error GoTo Catch
-    SQL_SELECT
-    SQLText "ProjectName"
-    SQLText "ProjectPath"
-    SQLText "ProjectData"
-    SQLText "ProjectFile"
-    SQLText "CreatedDate"
-    SQLText "CreatedBy", False
-    SQL_FROM "Project"
-    With DB
-        .DataPath = gstrProjectDataPath & "\"
-        .DataFile = gstrProjectItemsFile
-        .OpenMdb
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            MsgBox "Error: " & .ErrorDesc, vbExclamation, "PopulateData"
-            .CloseRs rst
-            .CloseMdb
-            Exit Sub
-        End If
-        If Not rst.EOF Then
-            SetTextBoxValue txtProjectName, rst!ProjectName
-            SetTextBoxValue txtProjectPath, rst!ProjectPath
-            SetTextBoxValue txtProjectData, rst!ProjectData
-            SetTextBoxValue txtProjectFile, rst!ProjectFile
-        Else
-            SetTextBoxValue txtProjectName
-            SetTextBoxValue txtProjectPath
-            SetTextBoxValue txtProjectData
-            SetTextBoxValue txtProjectFile
-        End If
-        .CloseRs rst
-        .CloseMdb
-    End With
+    SQ.SELECT_
+    SQ.SQL "ProjectName"
+    SQ.SQL "ProjectPath"
+    SQ.SQL "ProjectData"
+    SQ.SQL "ProjectFile"
+    SQ.SQL "CreatedDate"
+    SQ.SQL "CreatedBy", 0
+    SQ.FROM "Project"
+
+    DB.DataPath = gstrProjectDataPath & "\"
+    DB.DataFile = gstrProjectItemsFile
+    DB.OpenMdb
+    Set rst = DB.OpenRs(SQ.Text)
+    If DB.ErrorDesc <> "" Then
+        MsgBox "Error: " & DB.ErrorDesc, vbExclamation, "PopulateData"
+        DB.CloseRs rst
+        DB.CloseMdb
+        Exit Sub
+    End If
+    If Not rst.EOF Then
+        SetTextBoxValue txtProjectName, rst!ProjectName
+        SetTextBoxValue txtProjectPath, rst!ProjectPath
+        SetTextBoxValue txtProjectData, rst!ProjectData
+        SetTextBoxValue txtProjectFile, rst!ProjectFile
+    Else
+        SetTextBoxValue txtProjectName
+        SetTextBoxValue txtProjectPath
+        SetTextBoxValue txtProjectData
+        SetTextBoxValue txtProjectFile
+    End If
+    DB.CloseRs rst
+    DB.CloseMdb
     Exit Sub
 Catch:
     MsgBox Err.Number & " - " & Err.Description, vbExclamation, "PopulateData"
     LogError "Error", "PopulateData", Err.Description
-    With DB
-        .CloseRs rst
-        .CloseMdb
-    End With
+    DB.CloseRs rst
+    DB.CloseMdb
 End Sub
 
 Private Sub SaveData()
 Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
 Dim rst As ADODB.Recordset
 On Error GoTo Catch
     If vbNo = MsgBox("Do you want to Save this Project?", vbQuestion + vbYesNo, "SaveData") Then
@@ -238,51 +237,47 @@ On Error GoTo Catch
         txtProjectFile.SetFocus
         Exit Sub
     End If
-    With DB
-        .DataPath = gstrProjectDataPath & "\"
-        .DataFile = gstrProjectItemsFile
-        .OpenMdb
-        SQL_SELECT_ALL "Project"
-        SQL_WHERE_Text "ProjectName", gstrProjectName
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            MsgBox "Error: " & .ErrorDesc, vbExclamation, "SaveData"
-            .CloseRs rst
-            .CloseMdb
-            Exit Sub
-        End If
-        If rst.EOF Then
-            MsgBox "Project not found!", vbExclamation, "SaveData"
-            .CloseRs rst
-            .CloseMdb
-            Exit Sub
-        End If
-        .CloseRs rst
-        'Update Project table
-        SQL_UPDATE "Project"
-        SQL_SET_Text "ProjectName", Trim(txtProjectName.Text)
-        SQL_SET_Text "ProjectPath", Trim(txtProjectPath.Text)
-        SQL_SET_Text "ProjectData", Trim(txtProjectData.Text)
-        SQL_SET_Text "ProjectFile", Trim(txtProjectFile.Text)
-        SQL_SET_DateTime "ModifiedDate", Now
-        SQL_SET_Text "ModifiedBy", "Aeric", False
-        .Execute gstrSQL ', lngRecordsAffected
-        If .ErrorDesc <> "" Then
-            MsgBox "Error: " & .ErrorDesc, vbExclamation, "SaveData"
-            .CloseMdb
-            Exit Sub
-        End If
-        .CloseMdb
-        MsgBox "Project is saved!", vbInformation, "SaveData"
-    End With
+    DB.DataPath = gstrProjectDataPath & "\"
+    DB.DataFile = gstrProjectItemsFile
+    DB.OpenMdb
+    SQ.SELECT_ALL "Project"
+    SQ.WHERE_Text "ProjectName", gstrProjectName
+    Set rst = DB.OpenRs(SQ.Text)
+    If DB.ErrorDesc <> "" Then
+        MsgBox "Error: " & DB.ErrorDesc, vbExclamation, "SaveData"
+        DB.CloseRs rst
+        DB.CloseMdb
+        Exit Sub
+    End If
+    If rst.EOF Then
+        MsgBox "Project not found!", vbExclamation, "SaveData"
+        DB.CloseRs rst
+        DB.CloseMdb
+        Exit Sub
+    End If
+    DB.CloseRs rst
+    'Update Project table
+    SQ.UPDATE "Project"
+    SQ.UTX "ProjectName", Trim(txtProjectName.Text)
+    SQ.UTX "ProjectPath", Trim(txtProjectPath.Text)
+    SQ.UTX "ProjectData", Trim(txtProjectData.Text)
+    SQ.UTX "ProjectFile", Trim(txtProjectFile.Text)
+    SQ.UDT "ModifiedDate", Now
+    SQ.UTX "ModifiedBy", "Aeric", 0
+    DB.Execute SQ.Text ', lngRecordsAffected
+    If DB.ErrorDesc <> "" Then
+        MsgBox "Error: " & DB.ErrorDesc, vbExclamation, "SaveData"
+        DB.CloseMdb
+        Exit Sub
+    End If
+    DB.CloseMdb
+    MsgBox "Project is saved!", vbInformation, "SaveData"
     Exit Sub
 Catch:
     MsgBox Err.Number & " - " & Err.Description, vbExclamation, "SaveData"
     LogError "Error", "SaveData", Err.Description
-    With DB
-        .CloseRs rst
-        .CloseMdb
-    End With
+    DB.CloseRs rst
+    DB.CloseMdb
 End Sub
 
 Private Sub SetTextBoxValue(ByVal ctrlTextbox As TextBox, Optional ByVal objData As Object)
