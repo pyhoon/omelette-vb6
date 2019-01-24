@@ -170,38 +170,38 @@ Private Sub lvwProjects_ItemClick(ByVal Item As MSComctlLib.ListItem)
 End Sub
 
 Private Sub ListTemplatesFromDatabase()
-    Dim DB As New OmlDatabase
-    Dim rst As ADODB.Recordset
-    Dim i As Integer
-    On Error GoTo Catch
-    With DB
-        .DataPath = gstrMasterDataPath & "\"
-        .DataFile = gstrMasterDataFile
-        .OpenMdb
-        SQL_SELECT_ALL "Template"
-        SQL_WHERE_Boolean "Active", True
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            LogError "Error", "ListTemplatesFromDatabase/frmProjectNew", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
-            Exit Sub
-        End If
-        If Not (rst Is Nothing Or rst.EOF) Then
-            With rst
-                While Not .EOF
-                    i = i + 1
-                    lvwProjects.ListItems.Add i, !TemplateKey, !TemplateText, CInt(!TemplateIcon)
-                    .MoveNext
-                Wend
-            End With
-        End If
-        .CloseRs rst
-        .CloseMdb
-    End With
-Exit Sub
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+Dim rst As ADODB.Recordset
+Dim i As Integer
+On Error GoTo Catch
+Try:
+    DB.DataPath = gstrMasterDataPath & "\"
+    DB.DataFile = gstrMasterDataFile
+    DB.OpenMdb
+    SQ.SELECT_ALL "Template"
+    SQ.WHERE_Boolean "Active", True
+    Set rst = DB.OpenRs(SQ.Text)
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "ListTemplatesFromDatabase/frmProjectNew", DB.ErrorDesc
+        DB.CloseRs rst
+        DB.CloseMdb
+        Exit Sub
+    End If
+    If Not (rst Is Nothing Or rst.EOF) Then
+        While Not rst.EOF
+            i = i + 1
+            lvwProjects.ListItems.Add i, rst!TemplateKey, rst!TemplateText, CInt(rst!TemplateIcon)
+            rst.MoveNext
+        Wend
+    End If
+    DB.CloseRs rst
+    DB.CloseMdb
+    Exit Sub
 Catch:
     LogError "Error", "ListTemplatesFromDatabase/frmProjectNew->", Err.Description
+    DB.CloseRs rst
+    DB.CloseMdb
 End Sub
 
 Private Sub OpenProject(ByVal strProjectName As String, ByVal strProjectPath As String)
