@@ -2,6 +2,7 @@ Attribute VB_Name = "modCommon"
 ' Version : 2.3
 ' Author: Poon Yip Hoon
 ' Modified On : 29/06/2018
+' Modified On : 19/01/2019
 ' Descriptions : Commonly use functions
 Option Explicit
 Public Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" (ByVal hwnd As Long, ByVal lpOperation As String, ByVal lpFile As String, ByVal lpParameters As String, ByVal lpDirectory As String, ByVal nShowCmd As Long) As Long
@@ -16,6 +17,14 @@ Public Function CheckString(strInput As String) As String
     strInput = Replace(strInput, "*", "")
     strInput = Replace(strInput, "&", "")
     CheckString = strInput
+End Function
+
+Public Function CheckInteger(objInput As Object) As Integer
+    If IsNumeric(objInput) Then
+        CheckInteger = objInput
+    Else
+        CheckInteger = 0
+    End If
 End Function
 
 ' Prevent Hacker's SQL Injection
