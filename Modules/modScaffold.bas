@@ -1,13 +1,14 @@
 Attribute VB_Name = "modScaffold"
-' Version : 0.4
+' Version : 0.5
 ' Author: Poon Yip Hoon
 ' Created On   : 18 Sep 2017
-' Modified On  : 29 Jun 2018
+' Modified On  : 24 Jan 2019
 ' Descriptions : Scaffolding
 ' Dependencies:
 ' modProject
 ' modVariable
 ' OmlDatabase
+' OmlSQLBuilder
 
 Option Explicit
 
@@ -20,10 +21,6 @@ Option Explicit
 
 ' ID Int, Name Text, [OPTIONAL] Type Text, Active Bit, CreatedDate SmallDateTime, CreatedBy Text, ModifiedDate SmallDateTime, ModifiedBy Text
 
-'Private strProjectType As String
-'Private strProjectFolder As String
-'Private strProjectName As String
-'Private strProjectFormFile() As String
 Private strProjectFormName() As String
 Private strProjectModuleName() As String
 Private strProjectClassName() As String
@@ -38,67 +35,70 @@ Public Function CreateModel(ByVal strModel As String, _
                             Optional ByVal blnActiveDefault As Boolean = True, _
                             Optional ByVal DataPath As String = "", _
                             Optional ByVal DataFile As String = "") As Boolean
-    On Error GoTo Catch
-    Dim DB As New OmlDatabase
-    With DB
-        SetDefaultValue DataPath, gstrProjectDataPath
-        SetDefaultValue DataFile, gstrProjectDataFile
-        .DataPath = DataPath & "\"
-        .DataFile = DataFile
-        .OpenMdb
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            CreateModel = False
-            Exit Function
-        End If
-        SQL_CREATE strPrefix & strModel
-        If blnAppendModel Then
-            SQL_COLUMN_ID strModel & "ID"
-            SQL_COLUMN_TEXT "[" & strModel & "Name]" ' First Column
-            'SQL_COLUMN_TEXT "[" & strModel & "Type]" ' Second Column
-        Else
-            SQL_COLUMN_ID
-            SQL_COLUMN_TEXT "[Name]"
-            'SQL_COLUMN_TEXT "[Type]"
-        End If
-        SQL_COLUMN_YESNO "[Active]"
-        SQL_COLUMN_DATETIME "[CreatedDate]", "NOW()"
-        SQL_COLUMN_TEXT "[CreatedBy]", 100, "Omelette"  ' Change to your name
-        SQL_COLUMN_DATETIME "[ModifiedDate]"
-        SQL_COLUMN_TEXT "[ModifiedBy]", 100, "", True, True, False
-        SQL_Close_Bracket
-        'Debug.Print gstrSQL
-        .Execute gstrSQL
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            CreateModel = False
-            Exit Function
-        End If
-        .CloseMdb
-    End With
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+On Error GoTo Catch
+Try:
+    SetDefaultValue DataPath, gstrProjectDataPath
+    SetDefaultValue DataFile, gstrProjectDataFile
+    DB.DataPath = DataPath & "\"
+    DB.DataFile = DataFile
+    DB.OpenMdb
+    If DB.ErrorDesc <> "" Then
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        LogError "Error", "CreateModel/modScaffold", DB.ErrorDesc
+        CreateModel = False
+        Exit Function
+    End If
+    SQ.CREATE strModel, strPrefix
+    If blnAppendModel Then
+        SQ.COLUMN_ID strModel & "ID"
+        SQ.COLUMN_TEXT "[" & strModel & "Name]" ' First Column
+        'SQ.COLUMN_TEXT "[" & strModel & "Type]"  ' Second Column
+    Else
+        SQ.COLUMN_ID
+        SQ.COLUMN_TEXT "[Name]"
+        'SQ.COLUMN_TEXT "[Type]"
+    End If
+    SQ.COLUMN_YESNO "[Active]"
+    SQ.COLUMN_DATETIME "[CreatedDate]", "NOW()"
+    SQ.COLUMN_TEXT "[CreatedBy]", 100, "Omelette"  ' Change to your name
+    SQ.COLUMN_DATETIME "[ModifiedDate]"
+    SQ.COLUMN_TEXT "[ModifiedBy]", 100, "", -1, -1, 0
+    SQ.Close_Bracket
+    Debug.Print SQ.Text
+    DB.Execute SQ.Text
+    If DB.ErrorDesc <> "" Then
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        LogError "Error", "CreateModel/modScaffold", DB.ErrorDesc
+        CreateModel = False
+        Exit Function
+    End If
+    DB.CloseMdb
     
-    'gstrSQL = "CREATE INDEX idx" & strModel & "ID"
-    'gstrSQL = gstrSQL & " ON " & strPrefix & strModel & " ("
-    'If blnAppendModel Then
-    '    gstrSQL = gstrSQL & strModel
-    'End If
-    'gstrSQL = gstrSQL & "ID)"
-    'gstrSQL = gstrSQL & " WITH PRIMARY"
-    'OpenDB
-    'QuerySQL gstrSQL
-    'CloseDB
+    'SQ.SQL "CREATE INDEX idx" & strModel & "ID", 0, 0
+    'SQ.SQL "ON " & strPrefix & strModel, 0
+    'SQ.SOB " ", 0
+    'If blnAppendModel Then SQ.SQL strModel
+    'SQ.SQL "ID"
+    'SQ.SCB ""
+    'SQ.SQL "WITH PRIMARY", 0
+    'DB.OpenMdb
+    'DB.Execute SQ.Text
+    'DB.CloseMdb
     
-    'OpenDB
-    'gstrSQL = "ALTER TABLE " & strPrefix & strModel
-    'gstrSQL = gstrSQL & " ALTER COLUMN"
-    'gstrSQL = gstrSQL & " [CreatedDate] DATETIME DEFAULT NOW() NOT NULL"
-    'QuerySQL gstrSQL
-    'CloseDB
+    'DB.OpenMdb
+    'SQ.ALTER_TABLE strPrefix & strModel
+    'SQ.SQL "ALTER COLUMN", 0
+    'SQ.SQL "[CreatedDate] DATETIME DEFAULT NOW() NOT NULL", 0
+    'DB.Execute SQ.Text
+    'DB.CloseMdb
     
     CreateModel = True
     Exit Function
 Catch:
     Err.Description = Err.Description & " " & DB.ErrorDesc
+    LogError "Error", "CreateModel/modScaffold", Err.Description
     CreateModel = False
 End Function
 
@@ -107,47 +107,47 @@ Public Function CreateItems(ByVal strItemModel As String, _
                             Optional ByVal blnActiveDefault As Boolean = True, _
                             Optional ByVal DataPath As String = "", _
                             Optional ByVal DataFile As String = "") As Boolean
-    On Error GoTo Catch
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+On Error GoTo Catch
+Try:
     If strItem = "" Then strItem = strItemModel
-    Dim DB As New OmlDatabase
-    With DB
-        SetDefaultValue DataPath, gstrProjectDataPath
-        SetDefaultValue DataFile, gstrProjectItemsFile
-        .DataPath = DataPath & "\"
-        .DataFile = DataFile
-        .OpenMdb
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            CreateItems = False
-            Exit Function
-        End If
-        SQL_CREATE strItemModel
-        SQL_COLUMN_ID
-        SQL_COLUMN_TEXT "[" & strItem & "Name]"
-        SQL_COLUMN_TEXT "[" & strItem & "Path]"
-        SQL_COLUMN_TEXT "[" & strItem & "File]"
-        If strItemModel = "Project" Then
-            SQL_COLUMN_TEXT "[" & strItem & "Data]" ' Default Data Folder i.e. Storage
-        End If
-        SQL_COLUMN_YESNO "[Active]"
-        SQL_COLUMN_DATETIME "[CreatedDate]", "NOW()"
-        SQL_COLUMN_TEXT "[CreatedBy]", 255, "Omelette"  ' Change to your name
-        SQL_COLUMN_DATETIME "[ModifiedDate]"
-        SQL_COLUMN_TEXT "[ModifiedBy]", 255, "", True, True, False
-        SQL_Close_Bracket
-        
-        'Debug.Print gstrSQL
-        .Execute gstrSQL
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            CreateItems = False
-            Exit Function
-        End If
-        .CloseMdb
-    End With
+    SetDefaultValue DataPath, gstrProjectDataPath
+    SetDefaultValue DataFile, gstrProjectItemsFile
+    DB.DataPath = DataPath & "\"
+    DB.DataFile = DataFile
+    DB.OpenMdb
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "CreateItems/modScaffold", DB.ErrorDesc
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        CreateItems = False
+        Exit Function
+    End If
+    SQ.CREATE strItemModel
+    SQ.COLUMN_ID
+    SQ.COLUMN_TEXT "[" & strItem & "Name]"
+    SQ.COLUMN_TEXT "[" & strItem & "Path]"
+    SQ.COLUMN_TEXT "[" & strItem & "File]"
+    If strItemModel = "Project" Then SQ.COLUMN_TEXT "[" & strItem & "Data]" ' Default Data Folder i.e. Storage
+    SQ.COLUMN_YESNO "[Active]"
+    SQ.COLUMN_DATETIME "[CreatedDate]", "NOW()"
+    SQ.COLUMN_TEXT "[CreatedBy]", 255, "Omelette"  ' Change to your name
+    SQ.COLUMN_DATETIME "[ModifiedDate]"
+    SQ.COLUMN_TEXT "[ModifiedBy]", 255, "", True, True, False
+    SQ.Close_Bracket
+    Debug.Print SQ.Text
+    DB.Execute SQ.Text
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "CreateItems/modScaffold", DB.ErrorDesc
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        CreateItems = False
+        Exit Function
+    End If
+    DB.CloseMdb
     CreateItems = True
     Exit Function
 Catch:
+    LogError "Error", "CreateItems/modScaffold", Err.Description
     Err.Description = Err.Description & " " & DB.ErrorDesc
     CreateItems = False
 End Function
@@ -166,7 +166,10 @@ Public Function CreateUsers(Optional ByVal strModel As String = "", _
                             Optional ByVal strActiveDefault As String = "", _
                             Optional ByVal DataPath As String = "", _
                             Optional ByVal DataFile As String = "") As Boolean
-    On Error GoTo Catch
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+On Error GoTo Catch
+Try:
     SetDefaultValue strModel, "Users"
     SetDefaultValue strModelID, "ID"
     SetDefaultValue strUserID, "UserID"
@@ -176,43 +179,40 @@ Public Function CreateUsers(Optional ByVal strModel As String = "", _
     SetDefaultValue strUserPassword, "UserPassword"
     SetDefaultValue strSalt, "Salt"
     SetDefaultValue strUserRole, "UserRole"
-    Dim DB As New OmlDatabase
-    With DB
-        SetDefaultValue DataPath, gstrProjectDataPath
-        SetDefaultValue DataFile, gstrProjectDataFile
-        .DataPath = DataPath & "\"
-        .DataFile = DataFile
-        .OpenMdb
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            CreateUsers = False
-            Exit Function
-        End If
+    SetDefaultValue DataPath, gstrProjectDataPath
+    SetDefaultValue DataFile, gstrProjectDataFile
+    DB.DataPath = DataPath & "\"
+    DB.DataFile = DataFile
+    DB.OpenMdb
+    If DB.ErrorDesc <> "" Then
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        CreateUsers = False
+        Exit Function
+    End If
         
-        SQL_CREATE strModel
-        SQL_COLUMN_ID strModelID
-        SQL_COLUMN_TEXT strUserID
-        SQL_COLUMN_TEXT strUserName
-        SQL_COLUMN_TEXT strFirstName, 100
-        SQL_COLUMN_TEXT strLastName, 100
-        SQL_COLUMN_TEXT strUserPassword
-        SQL_COLUMN_TEXT strSalt
-        SQL_COLUMN_TEXT strUserRole
-        SQL_COLUMN_YESNO "[Active]", strActiveDefault
-        SQL_COLUMN_DATETIME "[CreatedDate]", "NOW()"
-        SQL_COLUMN_TEXT "[CreatedBy]", 255, "Omelette"  ' Change to your name
-        SQL_COLUMN_DATETIME "[ModifiedDate]"
-        SQL_COLUMN_TEXT "[ModifiedBy]", 255, "", True, True, False
-        SQL_Close_Bracket
-        'Debug.Print gstrSQL
-        .Execute gstrSQL
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            CreateUsers = False
-            Exit Function
-        End If
-        .CloseMdb
-    End With
+    SQ.CREATE strModel
+    SQ.COLUMN_ID strModelID
+    SQ.COLUMN_TEXT strUserID
+    SQ.COLUMN_TEXT strUserName
+    SQ.COLUMN_TEXT strFirstName, 100
+    SQ.COLUMN_TEXT strLastName, 100
+    SQ.COLUMN_TEXT strUserPassword
+    SQ.COLUMN_TEXT strSalt
+    SQ.COLUMN_TEXT strUserRole
+    SQ.COLUMN_YESNO "[Active]", strActiveDefault
+    SQ.COLUMN_DATETIME "[CreatedDate]", "NOW()"
+    SQ.COLUMN_TEXT "[CreatedBy]", 255, "Omelette"  ' Change to your name
+    SQ.COLUMN_DATETIME "[ModifiedDate]"
+    SQ.COLUMN_TEXT "[ModifiedBy]", 255, "", True, True, False
+    SQ.Close_Bracket
+    Debug.Print SQ.Text
+    DB.Execute SQ.Text
+    If DB.ErrorDesc <> "" Then
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        CreateUsers = False
+        Exit Function
+    End If
+    DB.CloseMdb
     CreateUsers = True
     Exit Function
 Catch:
@@ -237,28 +237,27 @@ End Function
 'End Function
 
 Public Function FindTable(ByVal strTable As String) As Boolean
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+On Error GoTo Catch
 Try:
-    On Error GoTo Catch
-    Dim DB As New OmlDatabase
-    With DB
-        .DataPath = gstrProjectDataPath & "\"
-        .DataFile = gstrProjectDataFile
-        .OpenMdb
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            FindTable = False
-            Exit Function
-        End If
-        SQL_SELECT_ID strTable
-        'Debug.Print gstrSQL
-        .Execute gstrSQL
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            FindTable = False
-            Exit Function
-        End If
-        .CloseMdb
-    End With
+    DB.DataPath = gstrProjectDataPath & "\"
+    DB.DataFile = gstrProjectDataFile
+    DB.OpenMdb
+    If DB.ErrorDesc <> "" Then
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        FindTable = False
+        Exit Function
+    End If
+    SQ.SELECT_ID strTable
+    Debug.Print SQ.Text
+    DB.Execute SQ.Text
+    If DB.ErrorDesc <> "" Then
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        FindTable = False
+        Exit Function
+    End If
+    DB.CloseMdb
     FindTable = True
     Exit Function
 Catch:
@@ -267,29 +266,28 @@ Catch:
 End Function
 
 Public Function DropTable(ByVal strTable As String) As Boolean
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+On Error GoTo Catch
 Try:
-    On Error GoTo Catch
-    Dim DB As New OmlDatabase
-    With DB
-        .DataPath = gstrProjectDataPath & "\"
-        .DataFile = gstrProjectDataFile
-        .OpenMdb
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            DropTable = False
-            Exit Function
-        End If
-        
-        SQL_DROP strTable
-        'Debug.Print gstrSQL
-        .Execute gstrSQL
-        If .ErrorDesc <> "" Then
-            Err.Description = Err.Description & " " & .ErrorDesc
-            DropTable = False
-            Exit Function
-        End If
-        .CloseMdb
-    End With
+    DB.DataPath = gstrProjectDataPath & "\"
+    DB.DataFile = gstrProjectDataFile
+    DB.OpenMdb
+    If DB.ErrorDesc <> "" Then
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        DropTable = False
+        Exit Function
+    End If
+    
+    SQ.DROP strTable
+    Debug.Print SQ.Text
+    DB.Execute SQ.Text
+    If DB.ErrorDesc <> "" Then
+        Err.Description = Err.Description & " " & DB.ErrorDesc
+        DropTable = False
+        Exit Function
+    End If
+    DB.CloseMdb
     DropTable = True
     Exit Function
 Catch:
@@ -309,7 +307,7 @@ On Error GoTo Catch
     strDBCon = "Provider=Microsoft.Jet.OLEDB.4.0;"
     strDBCon = strDBCon & "Data Source=" & DataPath & "\" & DataFile & ";"
     strDBCon = strDBCon & "Jet OLEDB:Database Password=" & Password
-    cat.Create strDBCon
+    cat.CREATE strDBCon
     CreateProjectData = True
     Exit Function
 Catch:
@@ -329,7 +327,7 @@ On Error GoTo Catch
     strDBCon = "Provider=Microsoft.Jet.OLEDB.4.0;"
     strDBCon = strDBCon & "Data Source=" & DataPath & "\" & DataFile & ";"
     strDBCon = strDBCon & "Jet OLEDB:Database Password=" & Password
-    cat.Create strDBCon
+    cat.CREATE strDBCon
     CreateProjectItems = True
     Exit Function
 Catch:
@@ -341,43 +339,44 @@ Public Function AddProject(ByVal pstrProjectName As String, _
                             ByVal pstrProjectPath As String, _
                             ByVal pstrProjectFile As String, _
                             ByVal pstrProjectData As String) As Boolean
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
 On Error GoTo Catch
-    Dim DB As New OmlDatabase
-    With DB
-        .DataPath = gstrMasterDataPath & "\"
-        .DataFile = gstrMasterDataFile
-        .OpenMdb
-        If .ErrorDesc <> "" Then
-            AddProject = False
-            Exit Function
-        End If
-        SQL_INSERT "Project"
-        SQLText "ProjectName", True, False
-        SQLText "ProjectPath"
-        SQLText "ProjectFile"
-        SQLText "ProjectData"
-        SQLText "CreatedDate"
-        SQLText "CreatedBy", False
-        SQL_VALUES
-        SQLData_Text pstrProjectName, True, False
-        SQLData_Text pstrProjectPath
-        SQLData_Text pstrProjectFile
-        SQLData_Text pstrProjectData
-        SQLData_DateTime Now
-        SQLData_Text "Omelette", False  ' Change to your name
-        SQL_Close_Bracket
-        'Debug.Print gstrSQL
-        .Execute gstrSQL
-        If .ErrorDesc <> "" Then
-            .CloseMdb
-            AddProject = False
-            Exit Function
-        End If
-        .CloseMdb
-    End With
+Try:
+    DB.DataPath = gstrMasterDataPath & "\"
+    DB.DataFile = gstrMasterDataFile
+    DB.OpenMdb
+    If DB.ErrorDesc <> "" Then
+        AddProject = False
+        Exit Function
+    End If
+    SQ.INSERT "Project"
+    SQ.SOB "ProjectName"
+    SQ.SQL "ProjectPath"
+    SQ.SQL "ProjectFile"
+    SQ.SQL "ProjectData"
+    SQ.SQL "CreatedDate"
+    SQ.SCB "CreatedBy"
+    SQ.VALUES
+    SQ.VOB pstrProjectName
+    SQ.VAL pstrProjectPath
+    SQ.VAL pstrProjectFile
+    SQ.VAL pstrProjectData
+    SQ.VDT Now
+    SQ.VCB "Omelette" ' Change to your name
+    Debug.Print SQ.Text
+    DB.Execute SQ.Text
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "AddProject/modScaffold", DB.ErrorDesc
+        DB.CloseMdb
+        AddProject = False
+        Exit Function
+    End If
+    DB.CloseMdb
     AddProject = True
     Exit Function
 Catch:
+    LogError "Error", "AddProject/modScaffold", Err.Description
     DB.CloseMdb
     AddProject = False
 End Function
@@ -388,10 +387,12 @@ Public Function AddItem(ByVal pstrItemType As String, _
                             ByVal pstrItemFile As String, _
                             Optional ByVal pstrItemData As String = "Storage", _
                             Optional ByVal pstrProjectName As String = "") As Boolean
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+Dim strDataPath As String
+Dim strItemFile As String
 On Error GoTo Catch
-    Dim DB As New OmlDatabase
-    Dim strDataPath As String
-    Dim strItemFile As String
+Try:
     If gstrProjectDataPath = "" Then
         strDataPath = gstrMasterPath & "\" & gstrProjectFolder & "\" & pstrProjectName & "\" & gstrProjectData
     Else
@@ -402,100 +403,94 @@ On Error GoTo Catch
     Else
         strItemFile = gstrProjectItemsFile
     End If
-    With DB
-        .DataPath = strDataPath & "\"
-        .DataFile = strItemFile
-        .OpenMdb
-        If .ErrorDesc <> "" Then
-            AddItem = False
-            Exit Function
-        End If
-        If pstrItemType = "Project" Then
-            SQL_INSERT "Project"
-            SQLText "ProjectName", True, False
-            SQLText "ProjectPath"
-            SQLText "ProjectFile"
-            SQLText "ProjectData"
-            SQLText "CreatedDate"
-            SQLText "CreatedBy", False
-            SQL_VALUES
-            SQLData_Text pstrItemName, True, False
-            SQLData_Text pstrItemPath
-            SQLData_Text pstrItemFile
-            SQLData_Text pstrItemData
-            SQLData_DateTime Now
-            SQLData_Text "Omelette", False  ' Change to your name
-            SQL_Close_Bracket
-        ElseIf pstrItemType = "Forms" Then
-            SQL_INSERT "Forms"
-            SQLText "FormName", True, False
-            SQLText "FormPath"
-            SQLText "FormFile"
-            SQLText "CreatedDate"
-            SQLText "CreatedBy", False
-            SQL_VALUES
-            SQLData_Text pstrItemName, True, False
-            SQLData_Text pstrItemPath
-            SQLData_Text pstrItemFile
-            SQLData_DateTime Now
-            SQLData_Text "Omelette", False  ' Change to your name
-            SQL_Close_Bracket
-        ElseIf pstrItemType = "Modules" Then
-            SQL_INSERT "Modules"
-            SQLText "ModuleName", True, False
-            SQLText "ModulePath"
-            SQLText "ModuleFile"
-            SQLText "CreatedDate"
-            SQLText "CreatedBy", False
-            SQL_VALUES
-            SQLData_Text pstrItemName, True, False
-            SQLData_Text pstrItemPath
-            SQLData_Text pstrItemFile
-            SQLData_DateTime Now
-            SQLData_Text "Omelette", False  ' Change to your name
-            SQL_Close_Bracket
-        ElseIf pstrItemType = "Class" Then ' Class Module
-            SQL_INSERT "Class"
-            SQLText "ClassName", True, False
-            SQLText "ClassPath"
-            SQLText "ClassFile"
-            SQLText "CreatedDate"
-            SQLText "CreatedBy", False
-            SQL_VALUES
-            SQLData_Text pstrItemName, True, False
-            SQLData_Text pstrItemPath
-            SQLData_Text pstrItemFile
-            SQLData_DateTime Now
-            SQLData_Text "Omelette", False  ' Change to your name
-            SQL_Close_Bracket
-        ElseIf pstrItemType = "Data" Then
-            SQL_INSERT "Data"
-            SQLText "DataName", True, False
-            SQLText "DataPath"
-            SQLText "DataFile"
-            SQLText "CreatedDate"
-            SQLText "CreatedBy", False
-            SQL_VALUES
-            SQLData_Text pstrItemName, True, False
-            SQLData_Text pstrItemPath
-            SQLData_Text pstrItemFile
-            SQLData_DateTime Now
-            SQLData_Text "Omelette", False  ' Change to your name
-            SQL_Close_Bracket
-        End If
-        'Debug.Print gstrSQL
-        .Execute gstrSQL
-        If .ErrorDesc <> "" Then
-            .CloseMdb
-            AddItem = False
-            Exit Function
-        End If
-        .CloseMdb
-    End With
+    DB.DataPath = strDataPath & "\"
+    DB.DataFile = strItemFile
+    DB.OpenMdb
+    If DB.ErrorDesc <> "" Then
+        AddItem = False
+        Exit Function
+    End If
+    If pstrItemType = "Project" Then
+        SQ.INSERT "Project"
+        SQ.SOB "ProjectName"
+        SQ.SQL "ProjectPath"
+        SQ.SQL "ProjectFile"
+        SQ.SQL "ProjectData"
+        SQ.SQL "CreatedDate"
+        SQ.SCB "CreatedBy"
+        SQ.VALUES
+        SQ.VOB pstrItemName
+        SQ.VAL pstrItemPath
+        SQ.VAL pstrItemFile
+        SQ.VAL pstrItemData
+        SQ.VDT Now
+        SQ.VCB "Omelette"  ' Change to your name
+    ElseIf pstrItemType = "Forms" Then
+        SQ.INSERT "Forms"
+        SQ.SOB "FormName"
+        SQ.SQL "FormPath"
+        SQ.SQL "FormFile"
+        SQ.SQL "CreatedDate"
+        SQ.SCB "CreatedBy"
+        SQ.VALUES
+        SQ.VOB pstrItemName
+        SQ.VAL pstrItemPath
+        SQ.VAL pstrItemFile
+        SQ.VDT Now
+        SQ.VCB "Omelette"  ' Change to your name
+    ElseIf pstrItemType = "Modules" Then
+        SQ.INSERT "Modules"
+        SQ.SOB "ModuleName"
+        SQ.SQL "ModulePath"
+        SQ.SQL "ModuleFile"
+        SQ.SQL "CreatedDate"
+        SQ.SCB "CreatedBy"
+        SQ.VALUES
+        SQ.VOB pstrItemName
+        SQ.VAL pstrItemPath
+        SQ.VAL pstrItemFile
+        SQ.VDT Now
+        SQ.VCB "Omelette"  ' Change to your name
+    ElseIf pstrItemType = "Class" Then ' Class Module
+        SQ.INSERT "Class"
+        SQ.SOB "ClassName"
+        SQ.SQL "ClassPath"
+        SQ.SQL "ClassFile"
+        SQ.SQL "CreatedDate"
+        SQ.SCB "CreatedBy"
+        SQ.VALUES
+        SQ.VOB pstrItemName
+        SQ.VAL pstrItemPath
+        SQ.VAL pstrItemFile
+        SQ.VDT Now
+        SQ.VCB "Omelette"  ' Change to your name
+    ElseIf pstrItemType = "Data" Then
+        SQ.INSERT "Data"
+        SQ.SOB "DataName"
+        SQ.SQL "DataPath"
+        SQ.SQL "DataFile"
+        SQ.SQL "CreatedDate"
+        SQ.SCB "CreatedBy"
+        SQ.VALUES
+        SQ.VOB pstrItemName
+        SQ.VAL pstrItemPath
+        SQ.VAL pstrItemFile
+        SQ.VDT Now
+        SQ.VCB "Omelette"  ' Change to your name
+    End If
+    'Debug.Print SQ.Text
+    DB.Execute SQ.Text
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "AddItem/modScaffold", DB.ErrorDesc '& vbCrLf & SQ.Text
+        DB.CloseMdb
+        AddItem = False
+        Exit Function
+    End If
+    DB.CloseMdb
     AddItem = True
     Exit Function
 Catch:
-    LogError "Error", "AddItem", Err.Description
+    LogError "Error", "AddItem/modScaffold", Err.Description
     DB.CloseMdb
     AddItem = False
 End Function
@@ -565,12 +560,12 @@ End Function
 'End Function
 
 Public Sub CreateProject(strTemplate As String, strProjectPath As String, strProjectName As String)
+Dim pForm() As ProjectItem
+Dim pModule() As ProjectItem
+Dim pClass() As ProjectItem
+Dim i As Integer
+On Error GoTo Catch
 Try:
-    On Error GoTo Catch
-    Dim i As Integer
-    Dim pForm() As ProjectItem
-    Dim pModule() As ProjectItem
-    Dim pClass() As ProjectItem
     SetDefaultValue strProjectName, "Project1", True
     strProjectName = Format$(strProjectName, vbProperCase)
     SetDefaultValue strProjectPath, gstrMasterPath & "\" & gstrProjectFolder & "\" & strProjectName
@@ -700,332 +695,117 @@ Catch:
     MsgBox "Project creation failed!", vbExclamation, "Error"
 End Sub
 
-'Private Sub AddItemsFromTemplates(strProjectName As String)
-'    Dim DB As New OmlDatabase
-'    Dim rst As ADODB.Recordset
-'    Dim strItemName As String
-'    Dim strItemFile As String
-'    On Error GoTo Catch
-'    With DB
-'        .DataPath = gstrMasterDataPath & "\"
-'        .DataFile = gstrMasterDataFile
-'        .OpenMdb
-'        ' FORMS
-'        SQL_SELECT_ALL "Forms"
-'        SQL_WHERE_Boolean "Active", True
-'        SQL_AND_Text "TemplateName", strProjectType ' STANDARD
-'        Set rst = .OpenRs(gstrSQL)
-'        If .ErrorDesc <> "" Then
-'            LogError "Error", "AddItemsFromTemplates/frmProjectNew", .ErrorDesc
-'            .CloseRs rst
-'            .CloseMdb
-'            Exit Sub
-'        End If
-'        If Not (rst Is Nothing Or rst.EOF) Then
-'            With rst
-'                While Not .EOF
-'                    strItemName = !FormName
-'                    strItemFile = !FormFile
-'                    If strItemName <> "" Then
-'                        If strItemFile = "" Then strItemFile = strItemName & ".frm"
-'                        If Not AddItem("Form", strItemName, gstrProjectPath, strItemFile) Then
-'                            MsgBox "Database add new item (Form) failed", vbExclamation, "Error"
-'                            Exit Sub
-'                        End If
-'                    End If
-'                    .MoveNext
-'                Wend
-'            End With
-'        End If
-'        .CloseRs rst
-'
-'        ' MODULES
-'        SQL_SELECT_ALL "Modules"
-'        SQL_WHERE_Boolean "Active", True
-'        SQL_AND_Text "TemplateName", strProjectType ' STANDARD
-'        Set rst = .OpenRs(gstrSQL)
-'        If .ErrorDesc <> "" Then
-'            LogError "Error", "AddItemsFromTemplates/frmProjectNew", .ErrorDesc
-'            .CloseRs rst
-'            .CloseMdb
-'            Exit Sub
-'        End If
-'        If Not (rst Is Nothing Or rst.EOF) Then
-'            With rst
-'                While Not .EOF
-'                    strItemName = !ModuleName
-'                    strItemFile = !ModuleFile
-'                    If strItemName <> "" Then
-'                        If strItemFile = "" Then strItemFile = strItemName & ".bas"
-'                        If Not AddItem("Module", strItemName, gstrProjectPath, strItemFile) Then
-'                            MsgBox "Database add new item (Module) failed", vbExclamation, "Error"
-'                            Exit Sub
-'                        End If
-'                    End If
-'                    .MoveNext
-'                Wend
-'            End With
-'        End If
-'        .CloseRs rst
-'
-'        ' CLASS
-'        SQL_SELECT_ALL "Class"
-'        SQL_WHERE_Boolean "Active", True
-'        SQL_AND_Text "TemplateName", strProjectType ' STANDARD
-'        Set rst = .OpenRs(gstrSQL)
-'        If .ErrorDesc <> "" Then
-'            LogError "Error", "AddItemsFromTemplates/frmProjectNew", .ErrorDesc
-'            .CloseRs rst
-'            .CloseMdb
-'            Exit Sub
-'        End If
-'        If Not (rst Is Nothing Or rst.EOF) Then
-'            With rst
-'                While Not .EOF
-'                    strItemName = !ClassName
-'                    strItemFile = !ClassFile
-'                    If strItemName <> "" Then
-'                        If strItemFile = "" Then strItemFile = strItemName & ".cls"
-'                        If Not AddItem("Class", strItemName, gstrProjectPath, strItemFile) Then
-'                            MsgBox "Database add new item (Class) failed", vbExclamation, "Error"
-'                            Exit Sub
-'                        End If
-'                    End If
-'                    .MoveNext
-'                Wend
-'            End With
-'        End If
-'        .CloseRs rst
-'        .CloseMdb
-'    End With
-'Exit Sub
-'Catch:
-'    LogError "Error", "AddItemsFromTemplates/frmProjectNew->", Err.Description
-'End Sub
-
 Private Sub GetItems(ByVal strTemplate As String, ByVal strItemType As String, ByRef pItem() As ProjectItem)
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+Dim rst As ADODB.Recordset
+Dim strItem As String
+Dim strType As String
+Dim strFile As String
+Dim i As Integer
+On Error GoTo Catch
 Try:
-    On Error GoTo Catch
-    Dim DB As New OmlDatabase
-    Dim rst As ADODB.Recordset
-    Dim strItem As String
-    Dim strType As String
-    Dim strFile As String
-    With DB
-        .DataPath = gstrMasterDataPath & "\"
-        .DataFile = gstrMasterDataFile
-        .OpenMdb
-        Select Case strItemType
-            Case "Forms"
-                strItem = "Form"
-                strType = ".frm"
-            Case "Modules"
-                strItem = "Module"
-                strType = ".bas"
-            Case "Class"
-                strItem = "Class"
-                strType = ".cls"
-            Case "Project"
-                strItem = "Project"
-                strType = ".vbp"
-            Case Else
-                'strItem = ""
-                'strType = ""
-        End Select
-        SQL_SELECT_ALL strItemType
-        SQL_WHERE_Boolean "Active", True
-        SQL_AND_Text "TemplateName", strTemplate
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            LogError "Error", "GetItems/modScaffold", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
-            Exit Sub
-        End If
-        If Not (rst Is Nothing Or rst.EOF) Then
-            Dim i As Integer
-            With rst
-                ReDim pItem(.RecordCount - 1)
-                While Not .EOF
-                    If .Fields.Item(strItem & "Name").Value <> "" Then
-                        pItem(i).Name = .Fields.Item(strItem & "Name").Value
-                        strFile = .Fields.Item(strItem & "File").Value
-                        SetDefaultValue strFile, .Fields.Item(strItem & "Name").Value & strType
-                        pItem(i).File = strFile
-                    End If
-                    i = i + 1
-                    .MoveNext
-                Wend
-            End With
-        Else
-            ReDim pItem(-1)
-        End If
-        .CloseRs rst
-        .CloseMdb
-    End With
+    DB.DataPath = gstrMasterDataPath & "\"
+    DB.DataFile = gstrMasterDataFile
+    DB.OpenMdb
+    Select Case strItemType
+        Case "Forms"
+            strItem = "Form"
+            strType = ".frm"
+        Case "Modules"
+            strItem = "Module"
+            strType = ".bas"
+        Case "Class"
+            strItem = "Class"
+            strType = ".cls"
+        Case "Project"
+            strItem = "Project"
+            strType = ".vbp"
+        Case Else
+            'strItem = ""
+            'strType = ""
+    End Select
+    SQ.SELECT_ALL strItemType
+    SQ.WHERE_Boolean "Active", True
+    SQ.AND_Text "TemplateName", strTemplate
+    Set rst = DB.OpenRs(SQ.Text)
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "GetItems/modScaffold", DB.ErrorDesc
+        DB.CloseRs rst
+        DB.CloseMdb
+        Exit Sub
+    End If
+    If Not (rst Is Nothing Or rst.EOF) Then
+        ReDim pItem(rst.RecordCount - 1)
+        While Not rst.EOF
+            If rst.Fields.Item(strItem & "Name").Value <> "" Then
+                pItem(i).Name = rst.Fields.Item(strItem & "Name").Value
+                strFile = rst.Fields.Item(strItem & "File").Value
+                SetDefaultValue strFile, rst.Fields.Item(strItem & "Name").Value & strType
+                pItem(i).File = strFile
+            End If
+            i = i + 1
+            rst.MoveNext
+        Wend
+    Else
+        ReDim pItem(-1)
+    End If
+    DB.CloseRs rst
+    DB.CloseMdb
 Exit Sub
 Catch:
     LogError "Error", "GetItems/modScaffold->", Err.Description
 End Sub
 
-'Public Sub AddItemsFromTemplates(strTemplate As String, strProjectName As String)
-'    Dim DB As New OmlDatabase
-'    Dim rst As ADODB.Recordset
-'    Dim strItemName As String
-'    Dim strItemFile As String
-'Try:
-'    On Error GoTo Catch
-'    With DB
-'        .DataPath = gstrMasterDataPath & "\"
-'        .DataFile = gstrMasterDataFile
-'        .OpenMdb
-'        ' PROJECT
-'
-'        ' FORMS
-'        SQL_SELECT_ALL "Forms"
-'        SQL_WHERE_Boolean "Active", True
-'        SQL_AND_Text "TemplateName", strTemplate
-'        Set rst = .OpenRs(gstrSQL)
-'        If .ErrorDesc <> "" Then
-'            LogError "Error", "AddItemsFromTemplates/frmProjectNew", .ErrorDesc
-'            .CloseRs rst
-'            .CloseMdb
-'            Exit Sub
-'        End If
-'        If Not (rst Is Nothing Or rst.EOF) Then
-'            With rst
-'                While Not .EOF
-'                    strItemName = !FormName
-'                    strItemFile = !FormFile
-'                    If strItemName <> "" Then
-'                        If strItemFile = "" Then strItemFile = strItemName & ".frm"
-'                        If Not AddItem("Form", strItemName, gstrProjectPath, strItemFile) Then
-'                            MsgBox "Database add new item (Form) failed", vbExclamation, "Error"
-'                            Exit Sub
-'                        End If
-'                    End If
-'                    .MoveNext
-'                Wend
-'            End With
-'        End If
-'        .CloseRs rst
-'
-'        ' MODULES
-'        SQL_SELECT_ALL "Modules"
-'        SQL_WHERE_Boolean "Active", True
-'        SQL_AND_Text "TemplateName", strTemplate
-'        Set rst = .OpenRs(gstrSQL)
-'        If .ErrorDesc <> "" Then
-'            LogError "Error", "AddItemsFromTemplates/frmProjectNew", .ErrorDesc
-'            .CloseRs rst
-'            .CloseMdb
-'            Exit Sub
-'        End If
-'        If Not (rst Is Nothing Or rst.EOF) Then
-'            With rst
-'                While Not .EOF
-'                    strItemName = !ModuleName
-'                    strItemFile = !ModuleFile
-'                    If strItemName <> "" Then
-'                        If strItemFile = "" Then strItemFile = strItemName & ".bas"
-'                        If Not AddItem("Module", strItemName, gstrProjectPath, strItemFile) Then
-'                            MsgBox "Database add new item (Module) failed", vbExclamation, "Error"
-'                            Exit Sub
-'                        End If
-'                    End If
-'                    .MoveNext
-'                Wend
-'            End With
-'        End If
-'        .CloseRs rst
-'
-'        ' CLASS
-'        SQL_SELECT_ALL "Class"
-'        SQL_WHERE_Boolean "Active", True
-'        SQL_AND_Text "TemplateName", strTemplate
-'        Set rst = .OpenRs(gstrSQL)
-'        If .ErrorDesc <> "" Then
-'            LogError "Error", "AddItemsFromTemplates/frmProjectNew", .ErrorDesc
-'            .CloseRs rst
-'            .CloseMdb
-'            Exit Sub
-'        End If
-'        If Not (rst Is Nothing Or rst.EOF) Then
-'            With rst
-'                While Not .EOF
-'                    strItemName = !ClassName
-'                    strItemFile = !ClassFile
-'                    If strItemName <> "" Then
-'                        If strItemFile = "" Then strItemFile = strItemName & ".cls"
-'                        If Not AddItem("Class", strItemName, gstrProjectPath, strItemFile) Then
-'                            MsgBox "Database add new item (Class) failed", vbExclamation, "Error"
-'                            Exit Sub
-'                        End If
-'                    End If
-'                    .MoveNext
-'                Wend
-'            End With
-'        End If
-'        .CloseRs rst
-'
-'        .CloseMdb
-'    End With
-'Exit Sub
-'Catch:
-'    LogError "Error", "AddItemsFromTemplates/frmProjectNew->", Err.Description
-'End Sub
-
 Public Function WriteVbp(pstrTemplate As String, _
                     pstrFilePath As String, _
                     pstrFileName As String, _
                     Optional pstrProjectName As String) As Boolean
-    Dim DB As New OmlDatabase
-    Dim rst As ADODB.Recordset
-    Dim FF As Integer
-    Dim strText As String
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+Dim rst As ADODB.Recordset
+Dim FF As Integer
+Dim strText As String
 On Error GoTo Catch
+Try:
     If pstrProjectName = "" Then pstrProjectName = pstrFileName
-    With DB
-        .DataPath = gstrMasterDataPath & "\"
-        .DataFile = gstrMasterDataFile
-        .OpenMdb
-        SQL_SELECT_ALL "Code"
-        SQL_WHERE_Boolean "Active", True
-        If pstrTemplate = "ADMIN" Then
-            SQL_AND_Text "FileName", "Admin.vbp"
-        ElseIf pstrTemplate = "STANDARD" Then
-            SQL_AND_Text "FileName", "Project1.vbp"
-        Else
-            SQL_AND_Text "FileName", pstrFileName
-        End If
-        SQL_AND_Text "MethodName", "WriteVbp"
-        SQL_AND_Text "TemplateName", pstrTemplate
-        SQL_ORDER_BY "ID" ' Make sure by Order
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            LogError "Error", "WriteVbp/modScaffold", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
-            WriteVbp = False
-            Exit Function
-        End If
-        If Not (rst Is Nothing Or rst.EOF) Then
-            FF = FreeFile
-            Open pstrFilePath & "\" & pstrFileName For Output As #FF
-            With rst
-                While Not .EOF
-                    strText = !CodeText
-                    strText = Replace(strText, "{AppCompanyName}", App.CompanyName)
-                    strText = Replace(strText, "{Parameter2}", pstrProjectName)
-                    Print #FF, strText
-                    .MoveNext
-                Wend
-            End With
-            Close #FF
-        End If
-        .CloseRs rst
-        .CloseMdb
-    End With
+    DB.DataPath = gstrMasterDataPath & "\"
+    DB.DataFile = gstrMasterDataFile
+    DB.OpenMdb
+    SQ.SELECT_ALL "Code"
+    SQ.WHERE_Boolean "Active", True
+    If pstrTemplate = "ADMIN" Then
+        SQ.AND_Text "FileName", "Admin.vbp"
+    ElseIf pstrTemplate = "STANDARD" Then
+        SQ.AND_Text "FileName", "Project1.vbp"
+    Else
+        SQ.AND_Text "FileName", pstrFileName
+    End If
+    SQ.AND_Text "MethodName", "WriteVbp"
+    SQ.AND_Text "TemplateName", pstrTemplate
+    SQ.ORDER_BY "ID" ' Make sure by Order
+    Set rst = DB.OpenRs(SQ.Text)
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "WriteVbp/modScaffold", DB.ErrorDesc
+        DB.CloseRs rst
+        DB.CloseMdb
+        WriteVbp = False
+        Exit Function
+    End If
+    If Not (rst Is Nothing Or rst.EOF) Then
+        FF = FreeFile
+        Open pstrFilePath & "\" & pstrFileName For Output As #FF
+        While Not rst.EOF
+            strText = rst!CodeText
+            strText = Replace(strText, "{AppCompanyName}", App.CompanyName)
+            strText = Replace(strText, "{Parameter2}", pstrProjectName)
+            Print #FF, strText
+            rst.MoveNext
+        Wend
+        Close #FF
+    End If
+    DB.CloseRs rst
+    DB.CloseMdb
     WriteVbp = True
     Exit Function
 Catch:
@@ -1035,49 +815,47 @@ End Function
 
 ' Write the file (overwrite existing file)
 Public Function WriteFrm(pstrTemplate As String, pstrFilePath As String, pstrFormName As String) As Boolean
-    Dim DB As New OmlDatabase
-    Dim rst As ADODB.Recordset
-    Dim FF As Integer
-    Dim strText As String
-    Dim strFileName As String
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+Dim rst As ADODB.Recordset
+Dim FF As Integer
+Dim strText As String
+Dim strFileName As String
 On Error GoTo Catch
-    With DB
-        strFileName = pstrFormName & ".frm"
-        .DataPath = gstrMasterDataPath & "\"
-        .DataFile = gstrMasterDataFile
-        .OpenMdb
-        SQL_SELECT_ALL "Code"
-        SQL_WHERE_Boolean "Active", True
-        SQL_AND_Text "FileName", strFileName
-        SQL_AND_Text "MethodName", "WriteFrm"
-        SQL_AND_Text "TemplateName", pstrTemplate
-        ' Make sure by Order
-        SQL_ORDER_BY "ID"
-        'Debug.Print gstrSQL
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            LogError "Error", "WriteFrm/modScaffold", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
-            WriteFrm = False
-            Exit Function
-        End If
-        If Not (rst Is Nothing Or rst.EOF) Then
-            FF = FreeFile
-            Open pstrFilePath & "\" & strFileName For Output As #FF
-            With rst
-                While Not .EOF
-                    strText = !CodeText
-                    strText = Replace(strText, "{Parameter2}", pstrFormName)
-                    Print #FF, strText
-                    .MoveNext
-                Wend
-            End With
-            Close #FF
-        End If
-        .CloseRs rst
-        .CloseMdb
-    End With
+Try:
+    strFileName = pstrFormName & ".frm"
+    DB.DataPath = gstrMasterDataPath & "\"
+    DB.DataFile = gstrMasterDataFile
+    DB.OpenMdb
+    SQ.SELECT_ALL "Code"
+    SQ.WHERE_Boolean "Active", True
+    SQ.AND_Text "FileName", strFileName
+    SQ.AND_Text "MethodName", "WriteFrm"
+    SQ.AND_Text "TemplateName", pstrTemplate
+    ' Make sure by Order
+    SQ.ORDER_BY "ID"
+    Debug.Print SQ.Text
+    Set rst = DB.OpenRs(SQ.Text)
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "WriteFrm/modScaffold", DB.ErrorDesc
+        DB.CloseRs rst
+        DB.CloseMdb
+        WriteFrm = False
+        Exit Function
+    End If
+    If Not (rst Is Nothing Or rst.EOF) Then
+        FF = FreeFile
+        Open pstrFilePath & "\" & strFileName For Output As #FF
+        While Not rst.EOF
+            strText = rst!CodeText
+            strText = Replace(strText, "{Parameter2}", pstrFormName)
+            Print #FF, strText
+            rst.MoveNext
+        Wend
+        Close #FF
+    End If
+    DB.CloseRs rst
+    DB.CloseMdb
     WriteFrm = True
     Exit Function
 Catch:
@@ -1086,45 +864,43 @@ Catch:
 End Function
 
 Public Function WriteBas(pstrTemplate As String, pstrFilePath As String, pstrFileName As String) As Boolean
-    Dim DB As New OmlDatabase
-    Dim rst As ADODB.Recordset
-    Dim FF As Integer
-    Dim strText As String
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+Dim rst As ADODB.Recordset
+Dim FF As Integer
+Dim strText As String
 On Error GoTo Catch
-    With DB
-        .DataPath = gstrMasterDataPath & "\"
-        .DataFile = gstrMasterDataFile
-        .OpenMdb
-        SQL_SELECT_ALL "Code"
-        SQL_WHERE_Boolean "Active", True
-        SQL_AND_Text "FileName", pstrFileName
-        SQL_AND_Text "MethodName", "WriteBas"
-        SQL_AND_Text "TemplateName", pstrTemplate
-        ' Make sure by Order
-        SQL_ORDER_BY "ID"
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            LogError "Error", "WriteBas/modProject", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
-            WriteBas = False
-            Exit Function
-        End If
-        If Not (rst Is Nothing Or rst.EOF) Then
-            FF = FreeFile
-            Open pstrFilePath & "\" & pstrFileName For Output As #FF
-            With rst
-                While Not .EOF
-                    strText = !CodeText
-                    Print #FF, strText
-                    .MoveNext
-                Wend
-            End With
-            Close #FF
-        End If
-        .CloseRs rst
-        .CloseMdb
-    End With
+Try:
+    DB.DataPath = gstrMasterDataPath & "\"
+    DB.DataFile = gstrMasterDataFile
+    DB.OpenMdb
+    SQ.SELECT_ALL "Code"
+    SQ.WHERE_Boolean "Active", True
+    SQ.AND_Text "FileName", pstrFileName
+    SQ.AND_Text "MethodName", "WriteBas"
+    SQ.AND_Text "TemplateName", pstrTemplate
+    ' Make sure by Order
+    SQ.ORDER_BY "ID"
+    Set rst = DB.OpenRs(SQ.Text)
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "WriteBas/modScaffold", DB.ErrorDesc
+        DB.CloseRs rst
+        DB.CloseMdb
+        WriteBas = False
+        Exit Function
+    End If
+    If Not (rst Is Nothing Or rst.EOF) Then
+        FF = FreeFile
+        Open pstrFilePath & "\" & pstrFileName For Output As #FF
+        While Not rst.EOF
+            strText = rst!CodeText
+            Print #FF, strText
+            rst.MoveNext
+        Wend
+        Close #FF
+    End If
+    DB.CloseRs rst
+    DB.CloseMdb
     WriteBas = True
     Exit Function
 Catch:
@@ -1133,45 +909,42 @@ Catch:
 End Function
 
 Public Function WriteCls(pstrTemplate As String, pstrFilePath As String, pstrFileName As String) As Boolean
-    Dim DB As New OmlDatabase
-    Dim rst As ADODB.Recordset
-    Dim FF As Integer
-    Dim strText As String
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+Dim rst As ADODB.Recordset
+Dim FF As Integer
+Dim strText As String
 On Error GoTo Catch
-    With DB
-        .DataPath = gstrMasterDataPath & "\"
-        .DataFile = gstrMasterDataFile
-        .OpenMdb
-        SQL_SELECT_ALL "Code"
-        SQL_WHERE_Boolean "Active", True
-        SQL_AND_Text "FileName", pstrFileName
-        SQL_AND_Text "MethodName", "WriteCls"
-        SQL_AND_Text "TemplateName", pstrTemplate
-        ' Make sure by Order
-        SQL_ORDER_BY "ID"
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            LogError "Error", "WriteCls/modProject", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
-            WriteCls = False
-            Exit Function
-        End If
-        If Not (rst Is Nothing Or rst.EOF) Then
-            FF = FreeFile
-            Open pstrFilePath & "\" & pstrFileName For Output As #FF
-            With rst
-                While Not .EOF
-                    strText = !CodeText
-                    Print #FF, strText
-                    .MoveNext
-                Wend
-            End With
-            Close #FF
-        End If
-        .CloseRs rst
-        .CloseMdb
-    End With
+    DB.DataPath = gstrMasterDataPath & "\"
+    DB.DataFile = gstrMasterDataFile
+    DB.OpenMdb
+    SQ.SELECT_ALL "Code"
+    SQ.WHERE_Boolean "Active", True
+    SQ.AND_Text "FileName", pstrFileName
+    SQ.AND_Text "MethodName", "WriteCls"
+    SQ.AND_Text "TemplateName", pstrTemplate
+    ' Make sure by Order
+    SQ.ORDER_BY "ID"
+    Set rst = DB.OpenRs(SQ.Text)
+    If DB.ErrorDesc <> "" Then
+        LogError "Error", "WriteCls/modScaffold", DB.ErrorDesc
+        DB.CloseRs rst
+        DB.CloseMdb
+        WriteCls = False
+        Exit Function
+    End If
+    If Not (rst Is Nothing Or rst.EOF) Then
+        FF = FreeFile
+        Open pstrFilePath & "\" & pstrFileName For Output As #FF
+        While Not rst.EOF
+            strText = rst!CodeText
+            Print #FF, strText
+            rst.MoveNext
+        Wend
+        Close #FF
+    End If
+    DB.CloseRs rst
+    DB.CloseMdb
     WriteCls = True
     Exit Function
 Catch:
