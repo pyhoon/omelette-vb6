@@ -81,12 +81,13 @@ Private Sub Form_Load()
 End Sub
 
 Public Sub ReadItemsData()
-    Dim DB As New OmlDatabase
-    Dim rst As ADODB.Recordset
-    Dim i As Integer
-    Dim strLabel As String
-    Dim strKey As String
-    Dim nod As Node
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+Dim rst As ADODB.Recordset
+Dim i As Integer
+Dim strLabel As String
+Dim strKey As String
+Dim nod As Node
 On Error GoTo Catch
     If gstrProjectName = "" Then Exit Sub
     With tvwFiles
@@ -94,38 +95,34 @@ On Error GoTo Catch
         .Nodes.Clear
     End With
     With DB
-        .DataPath = gstrProjectDataPath & "\"
-        .DataFile = gstrProjectItemsFile
-        .OpenMdb
-        SQL_SELECT_ALL "Project"
-        SQL_WHERE_Text "ProjectName", gstrProjectName
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            'MsgBox "Error: " & .ErrorDesc, vbExclamation, "ReadItemsData"
-            LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
+        DB.DataPath = gstrProjectDataPath & "\"
+        DB.DataFile = gstrProjectItemsFile
+        DB.OpenMdb
+        SQ.SELECT_ALL "Project"
+        SQ.WHERE_Text "ProjectName", gstrProjectName
+        Set rst = DB.OpenRs(SQ.Text)
+        If DB.ErrorDesc <> "" Then
+            LogError "Error", "ReadItemsData/frmWindowProject", DB.ErrorDesc
+            DB.CloseRs rst
+            DB.CloseMdb
             Exit Sub
         End If
         If Not (rst Is Nothing Or rst.EOF) Then
-            With rst
-                .MoveFirst
-                strKey = "G1"
-                strLabel = rst!ProjectName & " (" & !ProjectFile & ")"
-                Set nod = tvwFiles.Nodes.Add(, tvwChild, strKey, strLabel, 1)
-                nod.Bold = True
-                nod.Expanded = True
-            End With
+            rst.MoveFirst
+            strKey = "G1"
+            strLabel = rst!ProjectName & " (" & rst!ProjectFile & ")"
+            Set nod = tvwFiles.Nodes.Add(, tvwChild, strKey, strLabel, 1)
+            nod.Bold = True
+            nod.Expanded = True
         End If
-        .CloseRs rst
+        DB.CloseRs rst
             
-        SQL_SELECT_ALL "Forms"
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            'MsgBox "Error: " & .ErrorDesc, vbExclamation, "ReadItemsData"
-            LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
+        SQ.SELECT_ALL "Forms"
+        Set rst = DB.OpenRs(SQ.Text)
+        If DB.ErrorDesc <> "" Then
+            LogError "Error", "ReadItemsData/frmWindowProject", DB.ErrorDesc
+            DB.CloseRs rst
+            DB.CloseMdb
             Exit Sub
         End If
         If Not (rst Is Nothing Or rst.EOF) Then
@@ -133,26 +130,23 @@ On Error GoTo Catch
             strLabel = "Forms"
             Set nod = tvwFiles.Nodes.Add("G1", tvwChild, strKey, strLabel, 2)
             nod.Expanded = True
-            With rst
-                '.MoveFirst
-                While Not .EOF
-                    i = i + 1
-                    strKey = "Item" & i
-                    strLabel = !FormName & " (" & !FormFile & ")"
-                    Set nod = tvwFiles.Nodes.Add("Forms", tvwChild, strKey, strLabel, 3)
-                    .MoveNext
-                Wend
-            End With
+            'rst.MoveFirst
+            While Not rst.EOF
+                i = i + 1
+                strKey = "Item" & i
+                strLabel = rst!FormName & " (" & rst!FormFile & ")"
+                Set nod = tvwFiles.Nodes.Add("Forms", tvwChild, strKey, strLabel, 3)
+                rst.MoveNext
+            Wend
         End If
-        .CloseRs rst
+        DB.CloseRs rst
         
-        SQL_SELECT_ALL "Modules"
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            'MsgBox "Error: " & .ErrorDesc, vbExclamation, "ReadItemsData"
-            LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
+        SQ.SELECT_ALL "Modules"
+        Set rst = DB.OpenRs(SQ.Text)
+        If DB.ErrorDesc <> "" Then
+            LogError "Error", "ReadItemsData/frmWindowProject", DB.ErrorDesc
+            DB.CloseRs rst
+            DB.CloseMdb
             Exit Sub
         End If
         If Not (rst Is Nothing Or rst.EOF) Then
@@ -160,25 +154,23 @@ On Error GoTo Catch
             strLabel = "Modules"
             Set nod = tvwFiles.Nodes.Add("G1", tvwChild, strKey, strLabel, 2)
             nod.Expanded = True
-            With rst
-                '.MoveFirst
-                While Not .EOF
-                    i = i + 1
-                    strKey = "Item" & i
-                    strLabel = !ModuleName & " (" & !ModuleFile & ")"
-                    Set nod = tvwFiles.Nodes.Add("Modules", tvwChild, strKey, strLabel, 4)
-                    .MoveNext
-                Wend
-            End With
+            'rst.MoveFirst
+            While Not rst.EOF
+                i = i + 1
+                strKey = "Item" & i
+                strLabel = rst!ModuleName & " (" & rst!ModuleFile & ")"
+                Set nod = tvwFiles.Nodes.Add("Modules", tvwChild, strKey, strLabel, 4)
+                rst.MoveNext
+            Wend
         End If
-        .CloseRs rst
+        DB.CloseRs rst
         
-        SQL_SELECT_ALL "Class"
-        Set rst = .OpenRs(gstrSQL)
-        If .ErrorDesc <> "" Then
-            LogError "Error", "ReadItemsData/frmWindowProject", .ErrorDesc
-            .CloseRs rst
-            .CloseMdb
+        SQ.SELECT_ALL "Class"
+        Set rst = DB.OpenRs(SQ.Text)
+        If DB.ErrorDesc <> "" Then
+            LogError "Error", "ReadItemsData/frmWindowProject", DB.ErrorDesc
+            DB.CloseRs rst
+            DB.CloseMdb
             Exit Sub
         End If
         If Not (rst Is Nothing Or rst.EOF) Then
@@ -186,24 +178,22 @@ On Error GoTo Catch
             strLabel = "Class"
             Set nod = tvwFiles.Nodes.Add("G1", tvwChild, strKey, strLabel, 2)
             nod.Expanded = True
-            With rst
-                '.MoveFirst
-                While Not .EOF
-                    i = i + 1
-                    strKey = "Item" & i
-                    strLabel = !ClassName & " (" & !ClassFile & ")"
-                    Set nod = tvwFiles.Nodes.Add("Class", tvwChild, strKey, strLabel, 5)
-                    .MoveNext
-                Wend
-            End With
+            'rst.MoveFirst
+            While Not rst.EOF
+                i = i + 1
+                strKey = "Item" & i
+                strLabel = rst!ClassName & " (" & rst!ClassFile & ")"
+                Set nod = tvwFiles.Nodes.Add("Class", tvwChild, strKey, strLabel, 5)
+                rst.MoveNext
+            Wend
         End If
-        .CloseRs rst
-        
-        .CloseMdb
+        DB.CloseRs rst
+        DB.CloseMdb
     End With
     tvwFiles.Enabled = True
-Exit Sub
+    Exit Sub
 Catch:
-    'MsgBox Err.Number & " - " & Err.Description, vbExclamation, "ReadItemsData"
     LogError "Error", "ReadItemsData/frmWindowProject", Err.Description
+    DB.CloseRs rst
+    DB.CloseMdb
 End Sub
