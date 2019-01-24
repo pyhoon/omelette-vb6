@@ -30,8 +30,6 @@ Public gstrMasterDataFile As String
 Public gstrMasterDataPath As String
 Public gstrMasterDataPassword As String
 
-Public gstrSQL As String
-
 'Public gconADODatabase As ADODB.Connection
 Public gconMaster As ADODB.Connection
 Public gconProject As ADODB.Connection
