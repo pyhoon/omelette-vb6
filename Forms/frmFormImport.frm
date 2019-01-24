@@ -218,53 +218,50 @@ Private Sub cmdCancel_Click()
 End Sub
 
 Private Sub cmdImport_Click()
-    Dim DB As New OmlDatabase
-    Dim strOutput As String
-    Dim FF As Integer
+Dim DB As New OmlDatabase
+Dim SQ As New OmlSQLBuilder
+Dim strOutput As String
+Dim FF As Integer
+On Error GoTo Catch
+Try:
     If Trim(txtSourceFile.Text) = "" Or Trim(txtFileName.Text) = "" Then
         MsgBox "Please select a File", vbExclamation, "Import Form"
         Exit Sub
     End If
-    On Error GoTo Catch
-Try:
-    With DB
-        .DataPath = gstrMasterDataPath & "\"
-        .DataFile = gstrMasterDataFile
-        .OpenMdb
-        FF = FreeFile
-        Open txtSourceFile.Text For Input As #FF
-        Do While Not EOF(FF)
-            Line Input #FF, strOutput
-            SQL_INSERT "Code"
-            SQLText "CodeText", True, False
-            SQLText "FileName"
-            SQLText "MethodName"
-            SQLText "TemplateName"
-            SQLText "CreatedDate"
-            SQLText "CreatedBy", False
-            SQL_VALUES
-            'SQLData_Text strOutput, True, False
-            strOutput = Replace(strOutput, "'", "''")
-            gstrSQL = gstrSQL & "'" & strOutput & "',"
-            SQLData_Text Trim(txtFileName.Text)
-            SQLData_Text Trim(cboMethod.ItemData(cboMethod.ListIndex))
-            SQLData_Text Trim(cboTemplate.Text)
-            SQLData_DateTime Now
-            SQLData_Text "Aeric", False  ' Change to your name
-            SQL_Close_Bracket
-            'Debug.Print gstrSQL
-            .Execute gstrSQL ', lngRecordsAffected
-            If .ErrorDesc <> "" Then
-                MsgBox "Error: " & .ErrorDesc, vbExclamation, "Import Form"
-                Close
-                .CloseMdb
-                Exit Sub
-            End If
-        Loop
-        Close
-        .CloseMdb
-        MsgBox "Form has beem imported!", vbInformation, "Import Form"
-    End With
+    DB.DataPath = gstrMasterDataPath & "\"
+    DB.DataFile = gstrMasterDataFile
+    DB.OpenMdb
+    FF = FreeFile
+    Open txtSourceFile.Text For Input As #FF
+    Do While Not EOF(FF)
+        Line Input #FF, strOutput
+        strOutput = Replace(strOutput, "'", "''")
+        SQ.INSERT "Code"
+        SQ.SOB "CodeText"
+        SQ.SQL "FileName"
+        SQ.SQL "MethodName"
+        SQ.SQL "TemplateName"
+        SQ.SQL "CreatedDate"
+        SQ.SCB "CreatedBy"
+        SQ.VALUES
+        SQ.VOB strOutput
+        SQ.VAL Trim(txtFileName.Text)
+        SQ.VAL Trim(cboMethod.ItemData(cboMethod.ListIndex))
+        SQ.VAL Trim(cboTemplate.Text)
+        SQ.DAT Now
+        SQ.VCB "Aeric"
+        'Debug.Print SQ.Text
+        DB.Execute SQ.Text
+        If DB.ErrorDesc <> "" Then
+            MsgBox "Error: " & DB.ErrorDesc, vbExclamation, "Import Form"
+            Close
+            DB.CloseMdb
+            Exit Sub
+        End If
+    Loop
+    Close
+    DB.CloseMdb
+    MsgBox "Form has beem imported!", vbInformation, "Import Form"
     Exit Sub
 Catch:
     MsgBox Err.Number & " - " & Err.Description, vbExclamation, "Import Form"
