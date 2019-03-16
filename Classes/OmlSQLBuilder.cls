@@ -22,14 +22,6 @@ Attribute VB_Exposed = False
 '              This class replaced modSQLQuery which uses gstrSQL
 '**************************************************************************
 '
-'**************************************************************************
-'   Disclaimer
-'**************************************************************************
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-' You are free to use this code within your own applications, but you are '
-' expressly forbidden from selling or otherwise distributing this source  '
-' code without prior written consent.                                     '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ' References:
 ' No dependencies
 '
