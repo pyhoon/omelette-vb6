@@ -23,14 +23,6 @@ Attribute VB_Ext_KEY = "Top_Level" ,"Yes"
 ' Description: A high level API written for MS Visual Basic 6.0
 '**************************************************************************
 '
-'**************************************************************************
-'   Disclaimer
-'**************************************************************************
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-' You are free to use this code within your own applications, but you are '
-' expressly forbidden from selling or otherwise distributing this source  '
-' code without prior written consent.                                     '
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ' References:
 ' Microsoft ActiveX Data Objects 6.1 Library
 ' C:\Program Files (x86)\Common Files\System\ado\msado15.dll
